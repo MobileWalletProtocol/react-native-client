@@ -1,7 +1,7 @@
 {
-  "name": "@coinbase/wallet-sdk",
-  "version": "4.0.4",
-  "description": "Coinbase Wallet JavaScript SDK",
+  "name": "@mobile-wallet-protocol/client",
+  "version": "0.0.1",
+  "description": "Client SDK for the Mobile Wallet Protocol",
   "keywords": [
     "coinbase",
     "coinbasewallet",

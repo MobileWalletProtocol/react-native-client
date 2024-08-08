@@ -17,5 +17,3 @@ release.sh
 jest.setup.ts
 jest.config.ts
 coverage/**
-
-compile-assets.js

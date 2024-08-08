@@ -3,28 +3,27 @@
   "version": "0.0.1",
   "description": "Client SDK for the Mobile Wallet Protocol",
   "keywords": [
-    "coinbase",
-    "coinbasewallet",
+    "react-native",
+    "expo",
     "eth",
     "ethereum",
     "wallet",
-    "walletlink",
-    "web3"
+    "web3",
+    "coinbase",
+    "coinbasewallet"
   ],
   "main": "dist/index.js",
-  "react-native": "dist/index.native.js",
   "types": "dist/index.d.ts",
   "sideEffects": false,
-  "repository": "https://github.com/coinbase/coinbase-wallet-sdk.git",
+  "repository": "https://github.com/MobileWalletProtocol/wallet-mobile-sdk.git",
   "author": "Coinbase, Inc.",
   "license": "Apache-2.0",
   "scripts": {
-    "pretest": "node compile-assets.js",
     "test": "jest",
     "test:coverage": "yarn test:unit && open coverage/lcov-report/index.html",
     "prebuild": "rm -rf ./build && node -p \"'export const LIB_VERSION = \\'' + require('./package.json').version + '\\';'\" > src/version.ts",
-    "build": "node compile-assets.js && tsc -p ./tsconfig.build.json && tsc-alias && cp -a src/vendor-js dist",
-    "dev": "node compile-assets.js && tsc --watch & nodemon --watch dist --delay 1 --exec tsc-alias",
+    "build": "tsc -p ./tsconfig.build.json && tsc-alias && cp -a src/vendor-js dist",
+    "dev": "tsc --watch & nodemon --watch dist --delay 1 --exec tsc-alias",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
@@ -33,8 +32,7 @@
     "@noble/curves": "^1.4.2",
     "@noble/hashes": "^1.4.0",
     "clsx": "^1.2.1",
-    "eventemitter3": "^5.0.1",
-    "preact": "^10.16.0"
+    "eventemitter3": "^5.0.1"
   },
   "peerDependencies": {
     "@react-native-async-storage/async-storage": "*",
@@ -43,26 +41,6 @@
     "react": "*",
     "react-dom": "*",
     "react-native": "*"
-  },
-  "peerDependenciesMeta": {
-    "@react-native-async-storage/async-storage": {
-      "optional": true
-    },
-    "expo": {
-      "optional": true
-    },
-    "expo-web-browser": {
-      "optional": true
-    },
-    "react": {
-      "optional": true
-    },
-    "react-dom": {
-      "optional": true
-    },
-    "react-native": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",
@@ -83,9 +61,11 @@
     "@typescript-eslint/parser": "^6.2.0",
     "babel-jest": "^27.5.1",
     "eslint": "^8.45.0",
-    "eslint-config-preact": "^1.3.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-native": "^4.1.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "expo-web-browser": "^13.0.3",
@@ -94,7 +74,6 @@
     "jest-websocket-mock": "^2.4.0",
     "nodemon": "^3.1.0",
     "prettier": "^3.0.0",
-    "sass": "^1.64.1",
     "ts-jest": "^27.1.5",
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.8",

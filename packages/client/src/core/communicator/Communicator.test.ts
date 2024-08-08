@@ -1,187 +1,154 @@
-import { LIB_VERSION } from '../../version';
-import { Message, MessageID } from '../message';
 import { Communicator } from './Communicator';
-import { CB_KEYS_URL } from ':core/constants';
-import { openPopup } from ':util/web';
+import { standardErrors } from ':core/error';
+import { EncryptedData, MessageID, RPCResponseMessage } from ':core/message';
 
-jest.mock(':util/web', () => ({
-  openPopup: jest.fn(),
+jest.mock('expo-web-browser', () => ({
+  openBrowserAsync: jest.fn(),
+  WebBrowserPresentationStyle: {
+    FORM_SHEET: 'FORM_SHEET',
+  },
+  dismissBrowser: jest.fn(),
 }));
 
-// Dispatches a message event to simulate postMessage calls from the popup
-function dispatchMessageEvent({ data, origin }: { data: Record<string, any>; origin: string }) {
-  const messageEvent = new MessageEvent('message', {
-    data,
-    origin,
-  });
-  window.dispatchEvent(messageEvent);
-}
-
-const popupLoadedMessage = {
-  data: { event: 'PopupLoaded' },
-};
-
-/**
- * Queues a message event to be dispatched after a delay.
- *
- * This is used to simulate messages dispatched by the popup. Because there is
- * no event emitted by the SDK to denote whether it's ready to receive, this
- * leverages a simple timeout of 200ms.
- */
-function queueMessageEvent({
-  data,
-  origin = new URL(CB_KEYS_URL).origin,
-}: {
-  data: Record<string, any>;
-  origin?: string;
-}) {
-  setTimeout(() => dispatchMessageEvent({ data, origin }), 200);
-}
-
-const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
-const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
+import * as WebBrowser from 'expo-web-browser';
 
 describe('Communicator', () => {
-  let urlOrigin: string;
   let communicator: Communicator;
-  let mockPopup: Pick<
-    Exclude<Communicator['popup'], null>,
-    'postMessage' | 'close' | 'closed' | 'focus'
-  >;
+  const mockID = '123' as MessageID;
 
   beforeEach(() => {
-    jest.clearAllMocks();
     Communicator.communicators.clear();
-
-    // url defaults to CB_KEYS_URL
     communicator = Communicator.getInstance();
-    urlOrigin = new URL(CB_KEYS_URL).origin;
-
-    mockPopup = {
-      postMessage: jest.fn(),
-      close: jest.fn(),
-      closed: false,
-      focus: jest.fn(),
-    } as unknown as Window;
-    (openPopup as jest.Mock).mockImplementation(() => mockPopup);
+    jest.clearAllMocks();
   });
 
-  describe('onMessage', () => {
-    it('should add and remove event listener', async () => {
-      const mockRequest: Message = {
-        requestId: 'mock-request-id-1-2',
-        data: 'test',
-      };
+  describe('constructor', () => {
+    it('should use the default URL if not provided', () => {
+      expect(communicator['url']).toBe('https://keys.coinbase.com/connect');
+    });
 
-      queueMessageEvent({ data: mockRequest });
-
-      const promise = communicator.onMessage(() => true);
-
-      expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
-      expect(await promise).toEqual(mockRequest);
-      expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
+    it('should use the provided URL', () => {
+      const customUrl = 'https://custom.com/api';
+      const customCommunicator = Communicator.getInstance(customUrl);
+      expect(customCommunicator['url']).toBe(customUrl);
     });
   });
 
   describe('postRequestAndWaitForResponse', () => {
-    it('should post a message to the popup window and wait for response', async () => {
-      const mockRequest: Message & { id: MessageID } = { id: 'mock-request-id-1-2', data: {} };
+    const mockRequest = {
+      id: mockID,
+      sdkVersion: '1.0.0',
+      callbackUrl: 'https://callback.com',
+      content: {
+        encrypted: {} as EncryptedData,
+      },
+      sender: '123',
+      timestamp: new Date('2022-02-01T20:30:45.500Z'),
+    };
 
-      queueMessageEvent(popupLoadedMessage);
-      queueMessageEvent({
-        data: {
-          requestId: mockRequest.id,
-        },
-      });
+    it('should open browser with correct URL on iOS', async () => {
+      (WebBrowser.openBrowserAsync as jest.Mock).mockResolvedValue({ type: 'dismiss' });
 
-      const response = await communicator.postRequestAndWaitForResponse(mockRequest);
+      communicator.postRequestAndWaitForResponse(mockRequest);
 
-      expect(mockPopup.postMessage).toHaveBeenNthCalledWith(
-        1,
+      expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
+        'https://keys.coinbase.com/connect?id=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&content=%7B%22encrypted%22%3A%7B%7D%7D&sender=%22123%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22',
         {
-          data: {
-            version: LIB_VERSION,
-          },
-        },
-        urlOrigin
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        }
       );
-      expect(mockPopup.postMessage).toHaveBeenNthCalledWith(2, mockRequest, urlOrigin);
+      expect(communicator['responseHandlers'].get(mockID)).toBeDefined();
+    });
 
-      expect(response).toEqual({
-        requestId: mockRequest.id,
-      });
+    it('should open browser with correct URL on Android', async () => {
+      (WebBrowser.openBrowserAsync as jest.Mock).mockResolvedValue({ type: 'opened' });
+
+      communicator.postRequestAndWaitForResponse(mockRequest);
+
+      expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
+        'https://keys.coinbase.com/connect?id=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&content=%7B%22encrypted%22%3A%7B%7D%7D&sender=%22123%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22',
+        {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        }
+      );
+      expect(communicator['responseHandlers'].get(mockID)).toBeDefined();
+    });
+
+    it('should reject with user rejected error when browser is cancelled on iOS', async () => {
+      (WebBrowser.openBrowserAsync as jest.Mock).mockResolvedValue({ type: 'cancel' });
+
+      await expect(communicator.postRequestAndWaitForResponse(mockRequest)).rejects.toEqual(
+        standardErrors.provider.userRejectedRequest()
+      );
+
+      expect(communicator['responseHandlers'].get(mockID)).toBeUndefined();
+    });
+
+    it('should reject with user rejected error when browser throws an error', async () => {
+      (WebBrowser.openBrowserAsync as jest.Mock).mockRejectedValue(new Error('Browser error'));
+
+      await expect(communicator.postRequestAndWaitForResponse(mockRequest)).rejects.toEqual(
+        standardErrors.provider.userRejectedRequest()
+      );
+
+      expect(communicator['responseHandlers'].get(mockID)).toBeUndefined();
     });
   });
 
-  describe('postMessage', () => {
-    it('should post a response to the popup window', async () => {
-      const mockResponse: Message = { requestId: 'mock-request-id-1-2', data: {} };
+  describe('handleResponse', () => {
+    const mockResponse: RPCResponseMessage = {
+      id: '456' as MessageID,
+      sender: 'test-sender',
+      requestId: '123' as MessageID,
+      content: { encrypted: {} as EncryptedData },
+      timestamp: new Date('2022-02-01T20:30:45.500Z'),
+    };
 
-      queueMessageEvent(popupLoadedMessage);
+    it('should parse response and call the correct handler', () => {
+      const mockHandler = jest.fn();
+      communicator['responseHandlers'].set(mockResponse.requestId, mockHandler);
 
-      await communicator.postMessage(mockResponse);
+      const responseUrl = `https://callback.com/?id="${mockResponse.id}"&sender="${mockResponse.sender}"&requestId="${mockResponse.requestId}"&content=${JSON.stringify(mockResponse.content)}&timestamp="${mockResponse.timestamp.toISOString()}"`;
 
-      expect(mockPopup.postMessage).toHaveBeenNthCalledWith(
-        1,
-        {
-          data: {
-            version: LIB_VERSION,
-          },
-        },
-        urlOrigin
-      );
-      expect(mockPopup.postMessage).toHaveBeenNthCalledWith(2, mockResponse, urlOrigin);
+      communicator.handleResponse(responseUrl);
+
+      expect(mockHandler).toHaveBeenCalledWith(mockResponse);
+      expect(communicator['responseHandlers'].size).toBe(0);
+      expect(WebBrowser.dismissBrowser).toHaveBeenCalled();
+    });
+
+    it('should not throw if no handler is found', () => {
+      const responseUrl = `https://callback.com/?id="${mockResponse.id}"&sender="${mockResponse.sender}"&requestId="${mockResponse.requestId}"&content=${JSON.stringify(mockResponse.content)}&timestamp="${mockResponse.timestamp.toISOString()}"`;
+
+      expect(() => communicator.handleResponse(responseUrl)).not.toThrow();
+    });
+
+    it('should return true if the communicator handled the message', () => {
+      const mockHandler = jest.fn();
+      communicator['responseHandlers'].set(mockResponse.requestId, mockHandler);
+
+      const responseUrl = `https://callback.com/?id="${mockResponse.id}"&sender="${mockResponse.sender}"&requestId="${mockResponse.requestId}"&content=${JSON.stringify(mockResponse.content)}&timestamp="${mockResponse.timestamp.toISOString()}"`;
+      const handled = communicator.handleResponse(responseUrl);
+
+      expect(handled).toBe(true);
+    });
+
+    it('should return false if the communicator did not handle the message', () => {
+      const responseUrl = `https://callback.com/?id="${mockResponse.id}"&sender="${mockResponse.sender}"&requestId="${mockResponse.requestId}"&content=${JSON.stringify(mockResponse.content)}&timestamp="${mockResponse.timestamp.toISOString()}"`;
+      const handled = communicator.handleResponse(responseUrl);
+
+      expect(handled).toBe(false);
     });
   });
 
-  describe('waitForPopupLoaded', () => {
-    it('should open a popup window and finish handshake', async () => {
-      queueMessageEvent(popupLoadedMessage);
+  describe('disconnect', () => {
+    it('should clear all response handlers', () => {
+      communicator['responseHandlers'].set('123' as MessageID, jest.fn());
+      communicator['responseHandlers'].set('456' as MessageID, jest.fn());
 
-      const popup = await communicator.waitForPopupLoaded();
+      communicator['disconnect']();
 
-      expect(openPopup).toHaveBeenCalledWith(new URL(CB_KEYS_URL));
-      expect(mockPopup.postMessage).toHaveBeenNthCalledWith(
-        1,
-        {
-          data: {
-            version: LIB_VERSION,
-          },
-        },
-        urlOrigin
-      );
-      expect(popup).toBeTruthy();
-    });
-
-    it('should re-focus and return the existing popup window if one is already open.', async () => {
-      mockPopup = {
-        postMessage: jest.fn(),
-        close: jest.fn(),
-        closed: false,
-        focus: jest.fn(),
-      } as unknown as Window;
-      (openPopup as jest.Mock).mockImplementationOnce(() => mockPopup);
-
-      queueMessageEvent(popupLoadedMessage);
-      await communicator.waitForPopupLoaded();
-
-      expect(mockPopup.focus).toHaveBeenCalledTimes(1);
-      expect(openPopup).toHaveBeenCalledTimes(1);
-    });
-
-    it('should open a popup window if an existing one is defined but closed', async () => {
-      mockPopup = {
-        postMessage: jest.fn(),
-        close: jest.fn(),
-        // Simulate the popup being closed
-        closed: true,
-      } as unknown as Window;
-      (openPopup as jest.Mock).mockImplementationOnce(() => mockPopup);
-
-      queueMessageEvent(popupLoadedMessage);
-      await communicator.waitForPopupLoaded();
-
-      expect(openPopup).toHaveBeenCalledTimes(2);
+      expect(communicator['responseHandlers'].size).toBe(0);
     });
   });
 });

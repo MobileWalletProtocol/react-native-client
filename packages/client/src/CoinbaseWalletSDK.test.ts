@@ -1,70 +1,56 @@
 import { CoinbaseWalletProvider } from './CoinbaseWalletProvider';
 import { CoinbaseWalletSDK } from './CoinbaseWalletSDK';
-import { ProviderInterface } from ':core/provider/interface';
-import { getFavicon } from ':core/type/util';
-import { getCoinbaseInjectedProvider } from ':util/provider';
+import { MOBILE_SDK_RESPONSE_PATH } from ':core/constants';
 
-jest.mock(':core/type/util');
-jest.mock(':util/provider');
 jest.mock('./CoinbaseWalletProvider');
+jest.mock(':core/storage/ScopedAsyncStorage');
 
 describe('CoinbaseWalletSDK', () => {
-  test('@makeWeb3Provider - return Coinbase Injected Provider', () => {
-    const injectedProvider = {} as unknown as ProviderInterface;
-    (getCoinbaseInjectedProvider as jest.Mock).mockReturnValue(injectedProvider);
+  const mockAppDeeplinkUrl = 'https://example.com';
+  const mockMetadata = {
+    appName: 'TestDapp',
+    appLogoUrl: 'https://example.com/logo.png',
+    appChainIds: [1, 42],
+    appDeeplinkUrl: mockAppDeeplinkUrl,
+  };
 
-    const SDK = new CoinbaseWalletSDK({
-      appName: 'Test',
-      appLogoUrl: 'http://coinbase.com/wallet-logo.png',
-    });
-
-    expect(SDK.makeWeb3Provider()).toBe(injectedProvider);
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test('@makeWeb3Provider - return new CoinbaseWalletProvider', () => {
-    (getCoinbaseInjectedProvider as jest.Mock).mockReturnValue(undefined);
-
-    const SDK = new CoinbaseWalletSDK({
-      appName: 'Test',
-      appLogoUrl: 'http://coinbase.com/wallet-logo.png',
+  describe('constructor', () => {
+    it('should throw an error if appDeeplinkUrl is not provided', () => {
+      expect(() => new CoinbaseWalletSDK({})).toThrow('appDeeplinkUrl is required on Mobile');
     });
 
-    SDK.makeWeb3Provider();
-
-    expect(CoinbaseWalletProvider).toHaveBeenCalledWith({
-      metadata: {
-        appName: 'Test',
-        appLogoUrl: 'http://coinbase.com/wallet-logo.png',
-        appChainIds: [],
-        appDeeplinkUrl: null,
-      },
-      preference: {
-        options: 'all',
-      },
-    });
-  });
-
-  test('@makeWeb3Provider - default values for metadata', () => {
-    (getFavicon as jest.Mock).mockReturnValue('https://dapp.xyz/pic.png');
-    (getCoinbaseInjectedProvider as jest.Mock).mockReturnValue(undefined);
-
-    const SDK = new CoinbaseWalletSDK({
-      appName: '',
-      appLogoUrl: '',
-    });
-
-    SDK.makeWeb3Provider();
-
-    expect(CoinbaseWalletProvider).toHaveBeenCalledWith({
-      metadata: {
+    it('should initialize metadata with default values', () => {
+      const sdk = new CoinbaseWalletSDK({ appDeeplinkUrl: mockAppDeeplinkUrl });
+      expect(sdk['metadata']).toEqual({
         appName: 'Dapp',
-        appLogoUrl: 'https://dapp.xyz/pic.png',
+        appLogoUrl: null,
         appChainIds: [],
-        appDeeplinkUrl: null,
-      },
-      preference: {
-        options: 'all',
-      },
+        appDeeplinkUrl: `${mockAppDeeplinkUrl}/${MOBILE_SDK_RESPONSE_PATH}`,
+      });
+    });
+
+    it('should initialize metadata with provided values', () => {
+      const sdk = new CoinbaseWalletSDK(mockMetadata);
+      expect(sdk['metadata']).toEqual({
+        ...mockMetadata,
+        appDeeplinkUrl: `${mockAppDeeplinkUrl}/${MOBILE_SDK_RESPONSE_PATH}`,
+      });
+    });
+  });
+
+  describe('makeWeb3Provider', () => {
+    it('should return a new CoinbaseWalletProvider instance', () => {
+      const sdk = new CoinbaseWalletSDK(mockMetadata);
+      const provider = sdk.makeWeb3Provider();
+      expect(provider).toBeInstanceOf(CoinbaseWalletProvider);
+      expect(CoinbaseWalletProvider).toHaveBeenCalledWith({
+        metadata: sdk['metadata'],
+        preference: { options: 'smartWalletOnly' },
+      });
     });
   });
 });

@@ -1,4 +1,4 @@
-import { Communicator } from './Communicator.native';
+import { Communicator } from './Communicator';
 import { CB_KEYS_URL, MOBILE_SDK_RESPONSE_PATH } from ':core/constants';
 
 export function handleResponse(responseUrl: string, keysUrl: string = CB_KEYS_URL): boolean {

@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { KeyValueStorage, Scope, ScopedStorage } from './types';
 
 export class ScopedAsyncStorage extends ScopedStorage implements KeyValueStorage {
@@ -15,26 +17,21 @@ export class ScopedAsyncStorage extends ScopedStorage implements KeyValueStorage
   }
 
   async setItem(key: string, value: string): Promise<void> {
-    localStorage.setItem(this.scopedKey(key), value);
+    await AsyncStorage.setItem(this.scopedKey(key), value);
   }
 
   async getItem(key: string): Promise<string | null> {
-    return localStorage.getItem(this.scopedKey(key));
+    return AsyncStorage.getItem(this.scopedKey(key));
   }
 
   async removeItem(key: string): Promise<void> {
-    localStorage.removeItem(this.scopedKey(key));
+    await AsyncStorage.removeItem(this.scopedKey(key));
   }
 
   async clear(): Promise<void> {
     const prefix = this.scopedKey('');
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (typeof key === 'string' && key.startsWith(prefix)) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach((key) => localStorage.removeItem(key));
+    const keys = await AsyncStorage.getAllKeys();
+    const keysToRemove = keys.filter((key) => typeof key === 'string' && key.startsWith(prefix));
+    await AsyncStorage.multiRemove(keysToRemove);
   }
 }

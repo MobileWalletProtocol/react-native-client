@@ -2,31 +2,40 @@
 
 import { LogoType, walletLogo } from './assets/wallet-logo';
 import { CoinbaseWalletProvider } from './CoinbaseWalletProvider';
-import { AppMetadata, Preference, ProviderInterface } from './core/provider/interface';
+import { AppMetadata, ProviderInterface } from './core/provider/interface';
 import { LIB_VERSION } from './version';
+import { MOBILE_SDK_RESPONSE_PATH } from ':core/constants';
 import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { getFavicon } from ':core/type/util';
-import { getCoinbaseInjectedProvider } from ':util/provider';
 
-// for backwards compatibility
 type CoinbaseWalletSDKOptions = Partial<AppMetadata>;
 
 export class CoinbaseWalletSDK {
   private metadata: AppMetadata;
 
   constructor(metadata: Readonly<CoinbaseWalletSDKOptions>) {
+    if (!metadata.appDeeplinkUrl) {
+      throw new Error('appDeeplinkUrl is required on Mobile');
+    }
+
+    const url = new URL(metadata.appDeeplinkUrl);
+    url.pathname += url.pathname.endsWith('/')
+      ? MOBILE_SDK_RESPONSE_PATH
+      : `/${MOBILE_SDK_RESPONSE_PATH}`;
+
     this.metadata = {
       appName: metadata.appName || 'Dapp',
-      appLogoUrl: metadata.appLogoUrl || getFavicon(),
+      appLogoUrl: metadata.appLogoUrl || null,
       appChainIds: metadata.appChainIds || [],
-      appDeeplinkUrl: null,
+      appDeeplinkUrl: url.toString(),
     };
     this.storeLatestVersion();
   }
 
-  public makeWeb3Provider(preference: Preference = { options: 'all' }): ProviderInterface {
-    const params = { metadata: this.metadata, preference };
-    return getCoinbaseInjectedProvider(params) ?? new CoinbaseWalletProvider(params);
+  public makeWeb3Provider(): ProviderInterface {
+    return new CoinbaseWalletProvider({
+      metadata: this.metadata,
+      preference: { options: 'smartWalletOnly' },
+    });
   }
 
   /**

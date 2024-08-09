@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./packages/wallet-sdk
+        working-directory: ./packages/client
     needs: [authorize]
     env:
       PACKAGE_VERSION: ${{ github.event.inputs.packageVersion }}
@@ -37,15 +37,15 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
-          cache-dependency-path: '**/yarn.lock'
+          node-version-file: ".nvmrc"
+          cache-dependency-path: "**/yarn.lock"
 
       - name: Update version
         run: npm version ${{ env.PACKAGE_VERSION }} --no-git-tag-version --workspaces-update=false
 
       - name: Install NPM dependencies
         run: yarn install --immutable
-  
+
       - name: Update version.ts file
         run: yarn prebuild
 

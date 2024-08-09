@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Coinbase Wallet Developer Docs
-    url: https://docs.cloud.coinbase.com/wallet-sdk/docs
-    about: Coinbase Wallet's developer documentation
+  - name: Smart Wallet Docs
+    url: https://www.smartwallet.dev/guides/react-native-integration
+    about: Developer documentation to integrate Coinbase Smart Wallet using MWP SDK

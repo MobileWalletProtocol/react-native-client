@@ -26,7 +26,7 @@ describe('Communicator', () => {
 
   describe('constructor', () => {
     it('should use the default URL if not provided', () => {
-      expect(communicator['url']).toBe('https://keys.coinbase.com/connect');
+      expect(communicator['url']).toBe(mockUrl);
     });
 
     it('should use the provided URL', () => {
@@ -54,7 +54,7 @@ describe('Communicator', () => {
       communicator.postRequestAndWaitForResponse(mockRequest);
 
       expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
-        'https://keys.coinbase.com/connect?id=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&content=%7B%22encrypted%22%3A%7B%7D%7D&sender=%22123%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22',
+        `${mockUrl}?id=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&content=%7B%22encrypted%22%3A%7B%7D%7D&sender=%22123%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22`,
         {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
         }
@@ -68,7 +68,7 @@ describe('Communicator', () => {
       communicator.postRequestAndWaitForResponse(mockRequest);
 
       expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
-        'https://keys.coinbase.com/connect?id=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&content=%7B%22encrypted%22%3A%7B%7D%7D&sender=%22123%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22',
+        `${mockUrl}?id=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&content=%7B%22encrypted%22%3A%7B%7D%7D&sender=%22123%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22`,
         {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
         }

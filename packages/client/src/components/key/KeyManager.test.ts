@@ -1,11 +1,14 @@
-import { SCWKeyManager } from './KeyManager';
+import { KeyManager } from './KeyManager';
 import { generateKeyPair } from ':core/cipher/cipher';
+import { Wallets } from ':core/wallet';
+
+const mockWallet = Wallets.CoinbaseSmartWallet;
 
 describe('KeyStorage', () => {
-  let keyStorage: SCWKeyManager;
+  let keyStorage: KeyManager;
 
   beforeEach(() => {
-    keyStorage = new SCWKeyManager();
+    keyStorage = new KeyManager({ wallet: mockWallet });
   });
 
   describe('getOwnPublicKey', () => {
@@ -32,7 +35,7 @@ describe('KeyStorage', () => {
     it('should load the same public key from storage with new instance', async () => {
       const firstPublicKey = await keyStorage.getOwnPublicKey();
 
-      const anotherKeyStorage = new SCWKeyManager();
+      const anotherKeyStorage = new KeyManager({ wallet: mockWallet });
       const secondPublicKey = await anotherKeyStorage.getOwnPublicKey();
 
       expect(firstPublicKey).toStrictEqual(secondPublicKey);
@@ -60,7 +63,7 @@ describe('KeyStorage', () => {
 
       const sharedSecret = await keyStorage.getSharedSecret();
 
-      const anotherKeyStorage = new SCWKeyManager();
+      const anotherKeyStorage = new KeyManager({ wallet: mockWallet });
       const sharedSecretFromAnotherStorage = await anotherKeyStorage.getSharedSecret();
 
       expect(sharedSecret).toStrictEqual(sharedSecretFromAnotherStorage);

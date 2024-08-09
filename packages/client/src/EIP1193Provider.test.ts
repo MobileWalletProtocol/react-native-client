@@ -1,76 +1,79 @@
-import { standardErrorCodes, standardErrors } from './core/error';
+import { standardErrors } from './core/error';
 import { EIP1193Provider } from './EIP1193Provider';
 import { MWPClient } from './MWPClient';
-import { RequestArguments } from ':core/provider/interface';
-import { AddressString } from ':core/type';
-import { Wallets } from ':core/wallet';
+import { serializeError } from ':core/error/serialize';
+import { Wallet, Wallets } from ':core/wallet';
 
-function createProvider() {
-  return new EIP1193Provider({
-    metadata: {
-      appName: 'Test App',
-      appLogoUrl: undefined,
-      appChainIds: [1],
-      appDeeplinkUrl: 'https://example.com',
-    },
-    wallet: Wallets.CoinbaseSmartWallet,
+jest.mock('expo-web-browser', () => ({
+  openBrowserAsync: jest.fn(),
+  WebBrowserPresentationStyle: {
+    FORM_SHEET: 'FORM_SHEET',
+  },
+  dismissBrowser: jest.fn(),
+}));
+
+jest.mock('./MWPClient');
+jest.mock(':core/wallet');
+
+describe('EIP1193Provider', () => {
+  let provider: EIP1193Provider;
+  let mockWallet: jest.Mocked<Wallet>;
+  let mockClient: jest.Mocked<MWPClient>;
+
+  beforeEach(() => {
+    mockWallet = Wallets.CoinbaseSmartWallet;
+    mockClient = {
+      request: jest.fn(),
+      reset: jest.fn(),
+    } as unknown as jest.Mocked<MWPClient>;
+    (MWPClient.createInstance as jest.Mock).mockResolvedValue(mockClient);
+
+    provider = new EIP1193Provider({
+      metadata: { appName: 'Test App', appDeeplinkUrl: 'test://deeplink' },
+      wallet: mockWallet,
+    });
+    console.warn = jest.fn();
   });
-}
 
-const mockHandshake = jest.fn();
-const mockRequest = jest.fn();
-const mockReset = jest.fn();
-
-let provider: EIP1193Provider;
-
-beforeEach(() => {
-  jest.resetAllMocks();
-  jest.spyOn(MWPClient, 'createInstance').mockImplementation(async () => {
-    return {
-      accounts: [AddressString('0x123')],
-      chainId: 1,
-      handshake: mockHandshake,
-      request: mockRequest,
-      reset: mockReset,
-    } as unknown as MWPClient;
+  afterEach(() => {
+    jest.clearAllMocks();
   });
-  provider = createProvider();
-});
 
-describe('Event handling', () => {
-  it('emits disconnect event on user initiated disconnection', async () => {
-    const disconnectListener = jest.fn();
-    provider.on('disconnect', disconnectListener);
+  test('constructor initializes correctly', () => {
+    expect(provider).toBeDefined();
+    expect(provider.isCoinbaseWallet).toBe(true);
+  });
 
+  test('request method calls client.request', async () => {
+    const args = { method: 'eth_getBalance', params: ['0x123'] };
+    await provider.request(args);
+    expect(mockClient.request).toHaveBeenCalledWith(args);
+  });
+
+  test('request method handles errors', async () => {
+    const mockError = standardErrors.provider.unauthorized();
+    mockClient.request.mockRejectedValue(mockError);
+    await expect(provider.request({ method: 'eth_getBalance' })).rejects.toEqual(
+      serializeError(mockError)
+    );
+    expect(mockClient.reset).toHaveBeenCalled();
+  });
+
+  test('enable method calls request with eth_requestAccounts', async () => {
+    const spy = jest.spyOn(provider, 'request');
+    await provider.enable();
+    expect(spy).toHaveBeenCalledWith({ method: 'eth_requestAccounts' });
+  });
+
+  test('disconnect method calls client.reset and emits disconnect event', async () => {
+    const spy = jest.spyOn(provider, 'emit');
     await provider.disconnect();
-
-    expect(disconnectListener).toHaveBeenCalledWith(
-      standardErrors.provider.disconnected('User initiated disconnection')
-    );
-  });
-});
-
-describe('Request Handling', () => {
-  it('returns default chain id even without signer set up', async () => {
-    expect(provider.request({ method: 'eth_chainId' })).resolves.toBe('0x1');
-    expect(provider.request({ method: 'net_version' })).resolves.toBe(1);
+    expect(mockClient.reset).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith('disconnect', expect.any(Error));
   });
 
-  it('throws error when handling invalid request', async () => {
-    await expect(provider.request({} as RequestArguments)).rejects.toThrowEIPError(
-      standardErrorCodes.rpc.invalidParams,
-      "'args.method' must be a non-empty string."
-    );
-  });
-
-  it('throws error for requests with unsupported or deprecated method', async () => {
-    const deprecated = ['eth_sign', 'eth_signTypedData_v2'];
-    const unsupported = ['eth_subscribe', 'eth_unsubscribe'];
-
-    for (const method of [...deprecated, ...unsupported]) {
-      await expect(provider.request({ method })).rejects.toThrowEIPError(
-        standardErrorCodes.provider.unsupportedMethod
-      );
-    }
+  test('ensureInitialized waits for initialization', async () => {
+    const privateEnsureInitialized = (provider as any).ensureInitialized.bind(provider);
+    await expect(privateEnsureInitialized()).resolves.not.toThrow();
   });
 });

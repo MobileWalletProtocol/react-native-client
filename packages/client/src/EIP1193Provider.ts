@@ -32,7 +32,7 @@ export class EIP1193Provider extends ProviderEventEmitter implements ProviderInt
     try {
       if (!this.client) throw standardErrors.rpc.internal('MWPClient not initialized');
 
-      return this.client.request(args);
+      return await this.client.request(args);
     } catch (error) {
       const { code } = error as { code?: number };
       if (code === standardErrorCodes.provider.unauthorized) this.disconnect();

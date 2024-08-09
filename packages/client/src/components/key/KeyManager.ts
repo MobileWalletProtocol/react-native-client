@@ -6,7 +6,7 @@ import {
 } from ':core/cipher/cipher';
 import { CryptoKey } from ':core/cipher/types';
 import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { Wallet } from ':core/wallet/wallet';
+import { Wallet } from ':core/wallet/';
 
 interface StorageItem {
   storageKey: string;

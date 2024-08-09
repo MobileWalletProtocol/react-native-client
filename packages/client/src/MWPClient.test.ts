@@ -1,7 +1,7 @@
 import { WebBasedWalletCommunicator } from 'src/components/communicator/webBased/Communicator';
 
 import { Communicator, CommunicatorInterface } from './components/communicator';
-import { KeyManager } from './components/keyManager/KeyManager';
+import { KeyManager } from './components/key/KeyManager';
 import { MWPClient } from './MWPClient';
 import {
   decryptContent,
@@ -9,17 +9,26 @@ import {
   exportKeyToHexString,
   importKeyFromHexString,
 } from ':core/cipher/cipher';
+import { CryptoKey } from ':core/cipher/types';
 import { standardErrors } from ':core/error';
 import { EncryptedData, RPCResponseMessage } from ':core/message';
-import { AppMetadata, ProviderEventCallback, RequestArguments } from ':core/provider/interface';
+import { AppMetadata, RequestArguments } from ':core/provider/interface';
 import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
 import { Wallets } from ':core/wallet';
 
-jest.mock('./KeyManager');
+jest.mock('expo-web-browser', () => ({
+  openBrowserAsync: jest.fn(),
+  WebBrowserPresentationStyle: {
+    FORM_SHEET: 'FORM_SHEET',
+  },
+  dismissBrowser: jest.fn(),
+}));
+
+jest.mock('./components/key/KeyManager');
 const storageStoreSpy = jest.spyOn(ScopedAsyncStorage.prototype, 'storeObject');
 const storageClearSpy = jest.spyOn(ScopedAsyncStorage.prototype, 'clear');
 
-jest.mock(':util/cipher', () => ({
+jest.mock(':core/cipher/cipher', () => ({
   decryptContent: jest.fn(),
   encryptContent: jest.fn(),
   exportKeyToHexString: jest.fn(),
@@ -49,15 +58,13 @@ describe('MWPClient', () => {
   let signer: MWPClient;
   let mockMetadata: AppMetadata;
   let mockCommunicator: CommunicatorInterface;
-  let mockCallback: ProviderEventCallback;
   let mockKeyManager: jest.Mocked<KeyManager>;
 
   beforeEach(async () => {
     mockMetadata = {
       appName: 'test',
-      appLogoUrl: null,
       appChainIds: [1],
-      appDeeplinkUrl: null,
+      appDeeplinkUrl: 'https://example.com',
     };
 
     WebBasedWalletCommunicator.communicators.clear();
@@ -66,7 +73,6 @@ describe('MWPClient', () => {
       .spyOn(mockCommunicator, 'postRequestAndWaitForResponse')
       .mockResolvedValue(mockSuccessResponse);
 
-    mockCallback = jest.fn();
     mockKeyManager = new KeyManager({
       wallet: mockWallet,
     }) as jest.Mocked<KeyManager>;
@@ -110,8 +116,6 @@ describe('MWPClient', () => {
       expect(storageStoreSpy).toHaveBeenCalledWith('accounts', ['0xAddress']);
 
       expect(signer.request({ method: 'eth_requestAccounts' })).resolves.toEqual(['0xAddress']);
-      expect(mockCallback).toHaveBeenCalledWith('accountsChanged', ['0xAddress']);
-      expect(mockCallback).toHaveBeenCalledWith('connect', { chainId: '0x1' });
     });
 
     it('should throw an error if failure in response.content', async () => {
@@ -208,13 +212,12 @@ describe('MWPClient', () => {
         { id: 2, rpcUrl: 'https://eth-rpc.example.com/2' },
       ]);
       expect(storageStoreSpy).toHaveBeenCalledWith('walletCapabilities', mockCapabilities);
-      expect(mockCallback).toHaveBeenCalledWith('chainChanged', '0x1');
     });
   });
 
-  describe('disconnect', () => {
-    it('should disconnect successfully', async () => {
-      await signer.cleanup();
+  describe('reset', () => {
+    it('should reset successfully', async () => {
+      await signer.reset();
 
       expect(storageClearSpy).toHaveBeenCalled();
       expect(mockKeyManager.clear).toHaveBeenCalled();

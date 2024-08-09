@@ -1,4 +1,4 @@
-import { KeyManager } from './components/keyManager/KeyManager';
+import { KeyManager } from './components/key/KeyManager';
 import {
   decryptContent,
   encryptContent,

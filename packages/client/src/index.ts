@@ -1,7 +1,8 @@
 // Copyright (c) 2018-2024 Coinbase, Inc. <https://www.coinbase.com/>
-import { CoinbaseWalletSDK } from './CoinbaseWalletSDK';
-export default CoinbaseWalletSDK;
+import { MWPClient } from './MWPClient';
+export default MWPClient;
 
-export type { CoinbaseWalletProvider } from './EIP1193Provider';
-export { CoinbaseWalletSDK } from './CoinbaseWalletSDK';
+export { handleResponse } from './components/communicator';
 export type { AppMetadata, Preference, ProviderInterface } from './core/provider/interface';
+export { EIP1193Provider } from './EIP1193Provider';
+export { MWPClient } from './MWPClient';

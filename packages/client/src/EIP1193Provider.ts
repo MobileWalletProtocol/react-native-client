@@ -61,8 +61,6 @@ export class EIP1193Provider extends ProviderEventEmitter implements ProviderInt
     this.emit('disconnect', standardErrors.provider.disconnected('User initiated disconnection'));
   }
 
-  readonly isCoinbaseWallet = true;
-
   private async ensureInitialized() {
     await this.initPromise; // resolves immediately if already initialized
   }

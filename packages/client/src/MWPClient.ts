@@ -1,57 +1,68 @@
-import { Signer } from '../interface';
-import { SCWKeyManager } from './SCWKeyManager';
-import { Communicator } from ':core/communicator/Communicator';
-import { standardErrors } from ':core/error';
-import { RPCRequestMessage, RPCResponse, RPCResponseMessage } from ':core/message';
-import { AppMetadata, ProviderEventCallback, RequestArguments } from ':core/provider/interface';
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { AddressString } from ':core/type';
-import { ensureIntNumber, hexStringFromNumber } from ':core/type/util';
+import { KeyManager } from './components/keyManager/KeyManager';
 import {
   decryptContent,
   encryptContent,
   exportKeyToHexString,
   importKeyFromHexString,
-} from ':util/cipher';
-import { fetchRPCRequest } from ':util/provider';
+} from ':core/cipher/cipher';
+import { standardErrors } from ':core/error';
+import { RPCRequestMessage, RPCResponse, RPCResponseMessage } from ':core/message';
+import { AppMetadata, RequestArguments } from ':core/provider/interface';
+import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
+import { AddressString } from ':core/type';
+import { ensureIntNumber, hexStringFromNumber } from ':core/type/util';
+
 const ACCOUNTS_KEY = 'accounts';
 const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
 const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
 const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import { LIB_VERSION } from '../../version';
+import { Communicator, CommunicatorInterface } from './components/communicator';
+import { LIB_VERSION } from './version';
+import {
+  appendMWPResponsePath,
+  checkErrorForInvalidRequestArgs,
+  fetchRPCRequest,
+} from ':core/util/utils';
+import { Wallet } from ':core/wallet';
 
 type Chain = {
   id: number;
   rpcUrl?: string;
 };
 
-type ConstructorOptions = {
+type MWPClientOptions = {
   metadata: AppMetadata;
-  communicator: Communicator;
-  callback: ProviderEventCallback | null;
+  wallet: Wallet;
 };
 
-export class SCWSigner implements Signer {
+export class MWPClient {
   private readonly metadata: AppMetadata;
-  private readonly communicator: Communicator;
-  private readonly keyManager: SCWKeyManager;
+  private readonly wallet: Wallet;
+  private readonly keyManager: KeyManager;
   private readonly storage: ScopedAsyncStorage;
-  private callback: ProviderEventCallback | null;
+
+  private readonly communicator: CommunicatorInterface;
 
   private accounts: AddressString[];
   private chain: Chain;
 
-  private constructor(params: ConstructorOptions) {
-    this.metadata = params.metadata;
-    this.communicator = params.communicator;
-    this.callback = params.callback;
-    this.keyManager = new SCWKeyManager();
-    this.storage = new ScopedAsyncStorage('CBWSDK', 'SCWStateManager');
+  private constructor({ metadata, wallet }: MWPClientOptions) {
+    this.metadata = {
+      ...metadata,
+      appName: metadata.appName || 'Dapp',
+      appDeeplinkUrl: appendMWPResponsePath(metadata.appDeeplinkUrl),
+    };
+
+    this.wallet = wallet;
+    this.keyManager = new KeyManager({ wallet: this.wallet });
+    this.storage = new ScopedAsyncStorage(this.wallet.name, 'MWPClient');
+
+    this.communicator = Communicator.getInstance(this.wallet);
 
     // default values
     this.accounts = [];
     this.chain = {
-      id: params.metadata.appChainIds?.[0] ?? 1,
+      id: metadata.appChainIds?.[0] ?? 1,
     };
 
     this.handshake = this.handshake.bind(this);
@@ -72,13 +83,13 @@ export class SCWSigner implements Signer {
     }
   }
 
-  static async createInstance(params: ConstructorOptions) {
-    const instance = new SCWSigner(params);
+  static async createInstance(params: MWPClientOptions) {
+    const instance = new MWPClient(params);
     await instance.initialize();
     return instance;
   }
 
-  async handshake() {
+  async handshake(): Promise<AddressString[]> {
     const handshakeMessage = await this.createRequestMessage({
       handshake: {
         method: 'eth_requestAccounts',
@@ -101,7 +112,8 @@ export class SCWSigner implements Signer {
     const accounts = result.value as AddressString[];
     this.accounts = accounts;
     await this.storage.storeObject(ACCOUNTS_KEY, accounts);
-    this.callback?.('accountsChanged', accounts);
+
+    return accounts;
   }
 
   async request(request: RequestArguments) {
@@ -109,9 +121,10 @@ export class SCWSigner implements Signer {
       throw standardErrors.provider.unauthorized();
     }
 
+    checkErrorForInvalidRequestArgs(request);
+
     switch (request.method) {
       case 'eth_requestAccounts':
-        this.callback?.('connect', { chainId: hexStringFromNumber(this.chain.id) });
         return this.accounts;
       case 'eth_accounts':
         return this.accounts;
@@ -146,10 +159,6 @@ export class SCWSigner implements Signer {
   }
 
   private async sendRequestToPopup(request: RequestArguments) {
-    // [Web Only] Open the popup before constructing the request message.
-    // This is to ensure that the popup is not blocked by some browsers (i.e. Safari)
-    await this.communicator.waitForPopupLoaded?.();
-
     const response = await this.sendEncryptedRequest(request);
     const decrypted = await this.decryptResponseMessage(response);
 
@@ -159,7 +168,7 @@ export class SCWSigner implements Signer {
     return result.value;
   }
 
-  async cleanup() {
+  async reset() {
     await this.storage.clear();
     await this.keyManager.clear();
     this.accounts = [];
@@ -269,7 +278,6 @@ export class SCWSigner implements Signer {
     if (chain !== this.chain) {
       this.chain = chain;
       await this.storage.storeObject(ACTIVE_CHAIN_STORAGE_KEY, chain);
-      this.callback?.('chainChanged', hexStringFromNumber(chain.id));
     }
     return true;
   }

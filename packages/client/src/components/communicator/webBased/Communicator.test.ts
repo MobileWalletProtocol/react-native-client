@@ -1,4 +1,4 @@
-import { Communicator } from './Communicator';
+import { WebBasedWalletCommunicator } from './Communicator';
 import { standardErrors } from ':core/error';
 import { EncryptedData, MessageID, RPCResponseMessage } from ':core/message';
 
@@ -12,13 +12,15 @@ jest.mock('expo-web-browser', () => ({
 
 import * as WebBrowser from 'expo-web-browser';
 
+const mockUrl = 'https://coinbase.com/';
+
 describe('Communicator', () => {
-  let communicator: Communicator;
+  let communicator: WebBasedWalletCommunicator;
   const mockID = '123' as MessageID;
 
   beforeEach(() => {
-    Communicator.communicators.clear();
-    communicator = Communicator.getInstance();
+    WebBasedWalletCommunicator.communicators.clear();
+    communicator = WebBasedWalletCommunicator.getInstance(mockUrl);
     jest.clearAllMocks();
   });
 
@@ -29,7 +31,7 @@ describe('Communicator', () => {
 
     it('should use the provided URL', () => {
       const customUrl = 'https://custom.com/api';
-      const customCommunicator = Communicator.getInstance(customUrl);
+      const customCommunicator = WebBasedWalletCommunicator.getInstance(customUrl);
       expect(customCommunicator['url']).toBe(customUrl);
     });
   });

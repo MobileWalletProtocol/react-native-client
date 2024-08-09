@@ -1,10 +1,4 @@
 import {
-  decrypt as webDecrypt,
-  encrypt as webEncrypt,
-  exportKeyToHexString as webExportKeyToHexString,
-  importKeyFromHexString as webImportKeyFromHexString,
-} from './cipher';
-import {
   decrypt,
   decryptContent,
   deriveSharedSecret,
@@ -14,9 +8,66 @@ import {
   generateKeyPair,
   importKeyFromHexString,
 } from './cipher';
-import { RPCRequest, RPCResponse } from ':core/message';
+import { EncryptedData, RPCRequest, RPCResponse } from ':core/message';
+import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util';
 
-describe('cipher.native', () => {
+async function webEncrypt(sharedSecret: CryptoKey, plainText: string): Promise<EncryptedData> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const cipherText = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    sharedSecret,
+    new TextEncoder().encode(plainText)
+  );
+
+  return { iv: new Uint8Array(iv), cipherText: new Uint8Array(cipherText) };
+}
+
+async function webDecrypt(
+  sharedSecret: CryptoKey,
+  { iv, cipherText }: EncryptedData
+): Promise<string> {
+  const plainText = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, sharedSecret, cipherText);
+
+  return new TextDecoder().decode(plainText);
+}
+
+function getFormat(keyType: 'public' | 'private') {
+  switch (keyType) {
+    case 'public':
+      return 'spki';
+    case 'private':
+      return 'pkcs8';
+  }
+}
+
+async function webExportKeyToHexString(
+  type: 'public' | 'private',
+  key: CryptoKey
+): Promise<string> {
+  const format = getFormat(type);
+  const exported = await crypto.subtle.exportKey(format, key);
+  return uint8ArrayToHex(new Uint8Array(exported));
+}
+
+async function webImportKeyFromHexString(
+  type: 'public' | 'private',
+  hexString: string
+): Promise<CryptoKey> {
+  const format = getFormat(type);
+  const arrayBuffer = hexStringToUint8Array(hexString).buffer;
+  return await crypto.subtle.importKey(
+    format,
+    arrayBuffer,
+    {
+      name: 'ECDH',
+      namedCurve: 'P-256',
+    },
+    true,
+    type === 'private' ? ['deriveKey'] : []
+  );
+}
+
+describe('cipher', () => {
   let webPrivateKey: CryptoKey;
   let webPublicKey: CryptoKey;
 
@@ -216,8 +267,8 @@ describe('cipher.native', () => {
 
     // decrypt in web
     const receivedEncryptionData = {
-      iv: new Uint8Array(encryptedData.iv).buffer,
-      cipherText: new Uint8Array(encryptedData.cipherText).buffer,
+      iv: new Uint8Array(encryptedData.iv),
+      cipherText: new Uint8Array(encryptedData.cipherText),
     };
 
     const decryptedText = await webDecrypt(webSharedSecret, receivedEncryptionData);

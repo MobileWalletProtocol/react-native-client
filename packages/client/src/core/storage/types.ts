@@ -8,7 +8,7 @@ export interface KeyValueStorage {
   clear(): Promise<void>;
 }
 
-export type Scope = 'CBWSDK' | 'walletlink';
+export type Scope = string;
 
 export abstract class ScopedStorage {
   constructor(

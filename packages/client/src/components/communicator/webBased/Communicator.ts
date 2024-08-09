@@ -1,30 +1,29 @@
 import * as WebBrowser from 'expo-web-browser';
 
-import { CB_KEYS_URL } from ':core/constants';
+import { CommunicatorInterface } from '../interface';
+import { HashedContent } from './types';
 import { standardErrors } from ':core/error';
-import { MessageID, MobileRPCResponseMessage, RPCRequestMessage } from ':core/message';
+import { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
 
-export class Communicator {
-  static communicators = new Map<string, Communicator>();
+export class WebBasedWalletCommunicator implements CommunicatorInterface {
+  static communicators = new Map<string, WebBasedWalletCommunicator>();
 
   private readonly url: string;
-  private responseHandlers = new Map<MessageID, (_: MobileRPCResponseMessage) => void>();
+  private responseHandlers = new Map<MessageID, (_: RPCResponseMessage) => void>();
 
-  private constructor(url: string = CB_KEYS_URL) {
+  private constructor(url: string) {
     this.url = url;
   }
 
-  static getInstance(url: string = CB_KEYS_URL): Communicator {
+  static getInstance(url: string): WebBasedWalletCommunicator {
     if (!this.communicators.has(url)) {
-      this.communicators.set(url, new Communicator(url));
+      this.communicators.set(url, new WebBasedWalletCommunicator(url));
     }
 
     return this.communicators.get(url)!;
   }
 
-  postRequestAndWaitForResponse = (
-    request: RPCRequestMessage
-  ): Promise<MobileRPCResponseMessage> => {
+  postRequestAndWaitForResponse = (request: RPCRequestMessage): Promise<RPCResponseMessage> => {
     return new Promise((resolve, reject) => {
       // 1. generate request URL
       const urlParams = new URLSearchParams();
@@ -61,11 +60,16 @@ export class Communicator {
       return JSON.parse(searchParams.get(paramName) as string) as T;
     };
 
-    const response: MobileRPCResponseMessage = {
+    const hashedContent = parseParam<HashedContent>('content');
+
+    // TODO: un-hash content
+    const content = hashedContent as RPCResponseMessage['content'];
+
+    const response: RPCResponseMessage = {
       id: parseParam<MessageID>('id'),
       sender: parseParam<string>('sender'),
       requestId: parseParam<MessageID>('requestId'),
-      content: parseParam<MobileRPCResponseMessage['content']>('content'),
+      content,
       timestamp: new Date(parseParam<string>('timestamp')),
     };
 

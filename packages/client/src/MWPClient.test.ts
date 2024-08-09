@@ -1,18 +1,21 @@
-import { SCWKeyManager } from './SCWKeyManager';
-import { SCWSigner } from './SCWSigner';
-import { Communicator } from ':core/communicator/Communicator';
-import { standardErrors } from ':core/error';
-import { EncryptedData, RPCResponseMessage } from ':core/message';
-import { AppMetadata, ProviderEventCallback, RequestArguments } from ':core/provider/interface';
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
+import { WebBasedWalletCommunicator } from 'src/components/communicator/webBased/Communicator';
+
+import { Communicator, CommunicatorInterface } from './components/communicator';
+import { KeyManager } from './components/keyManager/KeyManager';
+import { MWPClient } from './MWPClient';
 import {
   decryptContent,
   encryptContent,
   exportKeyToHexString,
   importKeyFromHexString,
-} from ':util/cipher';
+} from ':core/cipher/cipher';
+import { standardErrors } from ':core/error';
+import { EncryptedData, RPCResponseMessage } from ':core/message';
+import { AppMetadata, ProviderEventCallback, RequestArguments } from ':core/provider/interface';
+import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
+import { Wallets } from ':core/wallet';
 
-jest.mock('./SCWKeyManager');
+jest.mock('./KeyManager');
 const storageStoreSpy = jest.spyOn(ScopedAsyncStorage.prototype, 'storeObject');
 const storageClearSpy = jest.spyOn(ScopedAsyncStorage.prototype, 'clear');
 
@@ -40,12 +43,14 @@ const mockSuccessResponse: RPCResponseMessage = {
   timestamp: new Date(),
 };
 
-describe('SCWSigner', () => {
-  let signer: SCWSigner;
+const mockWallet = Wallets.CoinbaseSmartWallet;
+
+describe('MWPClient', () => {
+  let signer: MWPClient;
   let mockMetadata: AppMetadata;
-  let mockCommunicator: Communicator;
+  let mockCommunicator: CommunicatorInterface;
   let mockCallback: ProviderEventCallback;
-  let mockKeyManager: jest.Mocked<SCWKeyManager>;
+  let mockKeyManager: jest.Mocked<KeyManager>;
 
   beforeEach(async () => {
     mockMetadata = {
@@ -55,16 +60,17 @@ describe('SCWSigner', () => {
       appDeeplinkUrl: null,
     };
 
-    Communicator.communicators.clear();
-    mockCommunicator = Communicator.getInstance();
-    jest.spyOn(mockCommunicator, 'waitForPopupLoaded').mockResolvedValue({} as Window);
+    WebBasedWalletCommunicator.communicators.clear();
+    mockCommunicator = Communicator.getInstance(mockWallet);
     jest
       .spyOn(mockCommunicator, 'postRequestAndWaitForResponse')
       .mockResolvedValue(mockSuccessResponse);
 
     mockCallback = jest.fn();
-    mockKeyManager = new SCWKeyManager() as jest.Mocked<SCWKeyManager>;
-    (SCWKeyManager as jest.Mock).mockImplementation(() => mockKeyManager);
+    mockKeyManager = new KeyManager({
+      wallet: mockWallet,
+    }) as jest.Mocked<KeyManager>;
+    (KeyManager as jest.Mock).mockImplementation(() => mockKeyManager);
     storageStoreSpy.mockReset();
 
     (importKeyFromHexString as jest.Mock).mockResolvedValue(mockCryptoKey);
@@ -72,10 +78,9 @@ describe('SCWSigner', () => {
     mockKeyManager.getSharedSecret.mockResolvedValue(mockCryptoKey);
     (encryptContent as jest.Mock).mockResolvedValueOnce(encryptedData);
 
-    signer = await SCWSigner.createInstance({
+    signer = await MWPClient.createInstance({
       metadata: mockMetadata,
-      communicator: mockCommunicator,
-      callback: mockCallback,
+      wallet: mockWallet,
     });
   });
 

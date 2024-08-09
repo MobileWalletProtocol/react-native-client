@@ -2,6 +2,6 @@
 import { CoinbaseWalletSDK } from './CoinbaseWalletSDK';
 export default CoinbaseWalletSDK;
 
-export type { CoinbaseWalletProvider } from './CoinbaseWalletProvider';
+export type { CoinbaseWalletProvider } from './EIP1193Provider';
 export { CoinbaseWalletSDK } from './CoinbaseWalletSDK';
 export type { AppMetadata, Preference, ProviderInterface } from './core/provider/interface';

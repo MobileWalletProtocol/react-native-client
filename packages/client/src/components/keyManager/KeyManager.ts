@@ -1,10 +1,12 @@
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
 import {
   deriveSharedSecret,
   exportKeyToHexString,
   generateKeyPair,
   importKeyFromHexString,
-} from ':util/cipher';
+} from ':core/cipher/cipher';
+import { CryptoKey } from ':core/cipher/types';
+import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
+import { Wallet } from ':core/wallet/wallet';
 
 interface StorageItem {
   storageKey: string;
@@ -23,12 +25,19 @@ const PEER_PUBLIC_KEY = {
   keyType: 'public',
 } as const;
 
-export class SCWKeyManager {
-  private readonly storage = new ScopedAsyncStorage('CBWSDK', 'SCWKeyManager');
+type KeyManagerType = {
+  wallet: Wallet;
+};
+export class KeyManager {
+  private readonly storage: ScopedAsyncStorage;
   private ownPrivateKey: CryptoKey | null = null;
   private ownPublicKey: CryptoKey | null = null;
   private peerPublicKey: CryptoKey | null = null;
   private sharedSecret: CryptoKey | null = null;
+
+  constructor({ wallet }: KeyManagerType) {
+    this.storage = new ScopedAsyncStorage(wallet.name, 'KeyManager');
+  }
 
   async getOwnPublicKey(): Promise<CryptoKey> {
     await this.loadKeysIfNeeded();

@@ -1,6 +1,6 @@
-import { isErrorResponse, Web3Response } from '../../sign/walletlink/relay/type/Web3Response';
 import { standardErrorCodes } from './constants';
 import { standardErrors } from './errors';
+import { isErrorResponse } from './serialize';
 import { getErrorCode, getMessageFromCode } from './utils';
 
 describe('errors', () => {
@@ -23,7 +23,7 @@ describe('errors', () => {
     expect(getErrorCode(null)).toEqual(undefined);
     expect(getErrorCode(undefined)).toEqual(undefined);
 
-    const errorResponse: Web3Response = {
+    const errorResponse = {
       method: 'generic',
       errorMessage: 'test error message',
       errorCode: 4137,

@@ -3,25 +3,9 @@ import { randomBytes } from '@noble/ciphers/webcrypto';
 import { secp256r1 } from '@noble/curves/p256';
 import { Buffer } from 'buffer';
 
-import { MobileEncryptedData, RPCRequest, RPCResponse } from ':core/message';
+import { CryptoKey, CryptoKeyPair } from './types';
+import { EncryptedData, RPCRequest, RPCResponse } from ':core/message';
 import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util';
-
-type CryptoKeyPair = {
-  privateKey: CryptoKey;
-  publicKey: CryptoKey;
-};
-
-type CryptoKey = {
-  type: 'private' | 'public' | 'secret';
-  algorithm: {
-    name: string;
-    namedCurve?: string;
-    length?: number;
-  };
-  extractable: boolean;
-  usages: string[];
-  _key: Uint8Array;
-};
 
 export async function generateKeyPair(): Promise<CryptoKeyPair> {
   const privateKey = secp256r1.utils.randomPrivateKey();
@@ -73,10 +57,7 @@ export async function deriveSharedSecret(
   };
 }
 
-export async function encrypt(
-  sharedSecret: CryptoKey,
-  plainText: string
-): Promise<MobileEncryptedData> {
+export async function encrypt(sharedSecret: CryptoKey, plainText: string): Promise<EncryptedData> {
   const iv = randomBytes(12);
   const stream = gcm(sharedSecret._key, iv);
   const plainTextBytes = new Uint8Array(Buffer.from(plainText, 'utf8'));
@@ -90,7 +71,7 @@ export async function encrypt(
 
 export async function decrypt(
   sharedSecret: CryptoKey,
-  { iv, cipherText }: MobileEncryptedData
+  { iv, cipherText }: EncryptedData
 ): Promise<string> {
   const stream = gcm(new Uint8Array(sharedSecret._key), new Uint8Array(iv));
   const plainTextBytes = stream.decrypt(new Uint8Array(cipherText));
@@ -147,7 +128,7 @@ export async function importKeyFromHexString(
 export async function encryptContent(
   content: RPCRequest | RPCResponse,
   sharedSecret: CryptoKey
-): Promise<MobileEncryptedData> {
+): Promise<EncryptedData> {
   const serialized = JSON.stringify(content, (_, value) => {
     if (!(value instanceof Error)) return value;
 
@@ -162,8 +143,8 @@ export async function encryptContent(
 
 export async function decryptContent<R extends RPCRequest | RPCResponse>(
   encryptedData: {
-    iv: Record<string, number>;
-    cipherText: Record<string, number>;
+    iv: unknown;
+    cipherText: unknown;
   },
   sharedSecret: CryptoKey
 ): Promise<R> {
@@ -176,8 +157,8 @@ export async function decryptContent<R extends RPCRequest | RPCResponse>(
 
   return JSON.parse(
     await decrypt(sharedSecret, {
-      iv: convertObjectToUint8Array(encryptedData.iv),
-      cipherText: convertObjectToUint8Array(encryptedData.cipherText),
+      iv: convertObjectToUint8Array(encryptedData.iv as Record<string, number>),
+      cipherText: convertObjectToUint8Array(encryptedData.cipherText as Record<string, number>),
     })
   );
 }

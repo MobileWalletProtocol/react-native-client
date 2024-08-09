@@ -4,5 +4,5 @@ export default MWPClient;
 
 export { handleResponse } from './components/communicator';
 export type { AppMetadata, Preference, ProviderInterface } from './core/provider/interface';
-export { EIP1193Provider } from './EIP1193Provider';
+export { EIP1193Provider } from './interfaces/eip1193/EIP1193Provider';
 export { MWPClient } from './MWPClient';

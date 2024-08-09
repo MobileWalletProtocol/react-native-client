@@ -143,6 +143,7 @@ export async function encryptContent(
 
 export async function decryptContent<R extends RPCRequest | RPCResponse>(
   encryptedData: {
+    // TODO: this is temp
     iv: unknown;
     cipherText: unknown;
   },

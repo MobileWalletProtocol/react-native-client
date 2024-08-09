@@ -5,6 +5,7 @@ import { HashedContent } from './types';
 import { standardErrors } from ':core/error';
 import { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
 
+// TODO: singleton pattern
 export class WebBasedWalletCommunicator implements CommunicatorInterface {
   static communicators = new Map<string, WebBasedWalletCommunicator>();
 

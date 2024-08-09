@@ -37,6 +37,7 @@ export interface AppMetadata {
   /** Application name */
   appName: string;
   /** Application logo image URL; favicon is used if unspecified */
+  // TODO: make this required
   appLogoUrl?: string;
   /** Array of chainIds your dapp supports */
   appChainIds?: number[];

@@ -31,7 +31,6 @@
     "@noble/ciphers": "^0.5.3",
     "@noble/curves": "^1.4.2",
     "@noble/hashes": "^1.4.0",
-    "clsx": "^1.2.1",
     "eventemitter3": "^5.0.1"
   },
   "peerDependencies": {
@@ -39,7 +38,6 @@
     "expo": "*",
     "expo-web-browser": "*",
     "react": "*",
-    "react-dom": "*",
     "react-native": "*"
   },
   "devDependencies": {
@@ -51,7 +49,6 @@
     "@peculiar/webcrypto": "^1.4.3",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/preact": "^2.0.1",
     "@testing-library/react": "14.3.1",
     "@types/jest": "^27.5.2",
     "@types/node": "^14.18.54",

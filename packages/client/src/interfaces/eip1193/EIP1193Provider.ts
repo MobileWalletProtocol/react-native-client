@@ -33,6 +33,7 @@ export class EIP1193Provider extends ProviderEventEmitter implements ProviderInt
       if (!this.client) throw standardErrors.rpc.internal('MWPClient not initialized');
 
       if (args.method === 'eth_requestAccounts') {
+        // TODO: emit connect
         const accounts = await this.client.handshake();
         return accounts;
       }

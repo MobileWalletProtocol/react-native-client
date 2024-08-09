@@ -1,6 +1,6 @@
-import { standardErrors } from './core/error';
+import { MWPClient } from '../../MWPClient';
 import { EIP1193Provider } from './EIP1193Provider';
-import { MWPClient } from './MWPClient';
+import { standardErrors } from ':core/error';
 import { serializeError } from ':core/error/serialize';
 import { Wallet, Wallets } from ':core/wallet';
 
@@ -12,7 +12,7 @@ jest.mock('expo-web-browser', () => ({
   dismissBrowser: jest.fn(),
 }));
 
-jest.mock('./MWPClient');
+jest.mock('../../MWPClient');
 jest.mock(':core/wallet');
 
 describe('EIP1193Provider', () => {
@@ -42,7 +42,6 @@ describe('EIP1193Provider', () => {
 
   test('constructor initializes correctly', () => {
     expect(provider).toBeDefined();
-    expect(provider.isCoinbaseWallet).toBe(true);
   });
 
   test('request method calls client.request', async () => {

@@ -1,12 +1,12 @@
-import { standardErrorCodes, standardErrors } from './core/error';
-import { serializeError } from './core/error/serialize';
+import { MWPClient } from '../../MWPClient';
+import { standardErrorCodes, standardErrors } from ':core/error';
+import { serializeError } from ':core/error/serialize';
 import {
   AppMetadata,
   ProviderEventEmitter,
   ProviderInterface,
   RequestArguments,
-} from './core/provider/interface';
-import { MWPClient } from './MWPClient';
+} from ':core/provider/interface';
 import { Wallet } from ':core/wallet';
 
 type EIP1193ProviderOptions = {

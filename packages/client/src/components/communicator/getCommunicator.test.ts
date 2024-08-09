@@ -1,4 +1,4 @@
-import { Communicator } from './Communicator';
+import { getCommunicator } from './getCommunicator';
 import { WebBasedWalletCommunicator } from './webBased/Communicator';
 import { Wallet } from ':core/wallet';
 
@@ -25,7 +25,7 @@ describe('Communicator', () => {
     };
     (WebBasedWalletCommunicator.getInstance as jest.Mock).mockReturnValue(mockCommunicator);
 
-    const result = Communicator.getInstance(mockWebBasedWallet);
+    const result = getCommunicator(mockWebBasedWallet);
 
     expect(WebBasedWalletCommunicator.getInstance).toHaveBeenCalledWith('test-scheme://');
     expect(result).toBe(mockCommunicator);
@@ -34,9 +34,7 @@ describe('Communicator', () => {
   test('getInstance throws error for native wallet', () => {
     const mockNativeWallet: Wallet = { type: 'native', scheme: 'native-scheme://' } as Wallet;
 
-    expect(() => Communicator.getInstance(mockNativeWallet)).toThrow(
-      'Native wallet not supported yet'
-    );
+    expect(() => getCommunicator(mockNativeWallet)).toThrow('Native wallet not supported yet');
   });
 
   test('getInstance throws error for unsupported wallet type', () => {
@@ -45,8 +43,6 @@ describe('Communicator', () => {
       scheme: 'unsupported-scheme://',
     } as Wallet;
 
-    expect(() => Communicator.getInstance(mockUnsupportedWallet)).toThrow(
-      'Unsupported wallet type'
-    );
+    expect(() => getCommunicator(mockUnsupportedWallet)).toThrow('Unsupported wallet type');
   });
 });

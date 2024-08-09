@@ -16,7 +16,7 @@ const ACCOUNTS_KEY = 'accounts';
 const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
 const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
 const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import { Communicator, CommunicatorInterface } from './components/communicator';
+import { CommunicatorInterface, getCommunicator } from './components/communicator';
 import { LIB_VERSION } from './version';
 import {
   appendMWPResponsePath,
@@ -57,7 +57,7 @@ export class MWPClient {
     this.keyManager = new KeyManager({ wallet: this.wallet });
     this.storage = new ScopedAsyncStorage(this.wallet.name, 'MWPClient');
 
-    this.communicator = Communicator.getInstance(this.wallet);
+    this.communicator = getCommunicator(this.wallet);
 
     // default values
     this.accounts = [];

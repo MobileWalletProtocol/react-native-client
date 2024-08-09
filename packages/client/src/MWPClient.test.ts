@@ -1,6 +1,6 @@
 import { WebBasedWalletCommunicator } from 'src/components/communicator/webBased/Communicator';
 
-import { Communicator, CommunicatorInterface } from './components/communicator';
+import { CommunicatorInterface, getCommunicator } from './components/communicator';
 import { KeyManager } from './components/key/KeyManager';
 import { MWPClient } from './MWPClient';
 import {
@@ -68,7 +68,7 @@ describe('MWPClient', () => {
     };
 
     WebBasedWalletCommunicator.communicators.clear();
-    mockCommunicator = Communicator.getInstance(mockWallet);
+    mockCommunicator = getCommunicator(mockWallet);
     jest
       .spyOn(mockCommunicator, 'postRequestAndWaitForResponse')
       .mockResolvedValue(mockSuccessResponse);

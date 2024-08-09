@@ -1,6 +1,6 @@
 import * as WebBrowser from 'expo-web-browser';
 
-import { CommunicatorInterface } from '../Communicator';
+import { CommunicatorInterface } from '../getCommunicator';
 import { HashedContent } from './types';
 import { standardErrors } from ':core/error';
 import { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';

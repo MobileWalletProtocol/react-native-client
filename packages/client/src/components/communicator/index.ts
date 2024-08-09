@@ -1,2 +1,2 @@
-export * from './Communicator';
+export * from './getCommunicator';
 export * from './handleResponse';

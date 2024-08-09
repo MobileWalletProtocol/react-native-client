@@ -23,6 +23,7 @@ describe('EIP1193Provider', () => {
   beforeEach(() => {
     mockWallet = Wallets.CoinbaseSmartWallet;
     mockClient = {
+      handshake: jest.fn(),
       request: jest.fn(),
       reset: jest.fn(),
     } as unknown as jest.Mocked<MWPClient>;

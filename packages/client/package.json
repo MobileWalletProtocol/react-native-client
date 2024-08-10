@@ -15,7 +15,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "sideEffects": false,
-  "repository": "https://github.com/MobileWalletProtocol/wallet-mobile-sdk.git",
+  "repository": "https://github.com/MobileWalletProtocol/react-native-client",
   "author": "Coinbase, Inc.",
   "license": "Apache-2.0",
   "scripts": {

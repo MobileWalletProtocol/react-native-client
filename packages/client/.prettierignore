@@ -5,6 +5,5 @@ coverage/**
 **/build
 **/dist
 **/node_modules
-**/src/vendor-js
 **/*-css.ts
 **/*-svg.ts

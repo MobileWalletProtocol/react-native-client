@@ -1,37 +1,23 @@
 import * as WebBrowser from 'expo-web-browser';
 
-import { CommunicatorInterface } from '../getCommunicator';
 import { HashedContent } from './types';
 import { standardErrors } from ':core/error';
 import { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
 
-// TODO: singleton pattern
-export class WebBasedWalletCommunicator implements CommunicatorInterface {
-  static communicators = new Map<string, WebBasedWalletCommunicator>();
-
-  private readonly url: string;
+class WebBasedWalletCommunicatorClass {
   private responseHandlers = new Map<MessageID, (_: RPCResponseMessage) => void>();
 
-  private constructor(url: string) {
-    this.url = url;
-  }
-
-  static getInstance(url: string): WebBasedWalletCommunicator {
-    if (!this.communicators.has(url)) {
-      this.communicators.set(url, new WebBasedWalletCommunicator(url));
-    }
-
-    return this.communicators.get(url)!;
-  }
-
-  postRequestAndWaitForResponse = (request: RPCRequestMessage): Promise<RPCResponseMessage> => {
+  postRequestAndWaitForResponse = (
+    request: RPCRequestMessage,
+    walletScheme: string
+  ): Promise<RPCResponseMessage> => {
     return new Promise((resolve, reject) => {
       // 1. generate request URL
       const urlParams = new URLSearchParams();
       Object.entries(request).forEach(([key, value]) => {
         urlParams.append(key, JSON.stringify(value));
       });
-      const requestUrl = new URL(this.url);
+      const requestUrl = new URL(walletScheme);
       requestUrl.search = urlParams.toString();
 
       // 2. save response
@@ -89,3 +75,5 @@ export class WebBasedWalletCommunicator implements CommunicatorInterface {
     this.responseHandlers.clear();
   };
 }
+
+export const WebBasedWalletCommunicator = new WebBasedWalletCommunicatorClass();

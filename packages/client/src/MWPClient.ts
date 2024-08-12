@@ -16,7 +16,7 @@ const ACCOUNTS_KEY = 'accounts';
 const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
 const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
 const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import { CommunicatorInterface, getCommunicator } from './components/communicator';
+import * as Communicator from './components/communicator';
 import { LIB_VERSION } from './version';
 import {
   appendMWPResponsePath,
@@ -41,8 +41,6 @@ export class MWPClient {
   private readonly keyManager: KeyManager;
   private readonly storage: ScopedAsyncStorage;
 
-  private readonly communicator: CommunicatorInterface;
-
   private accounts: AddressString[];
   private chain: Chain;
 
@@ -57,8 +55,6 @@ export class MWPClient {
     this.keyManager = new KeyManager({ wallet: this.wallet });
     this.storage = new ScopedAsyncStorage(this.wallet.name, 'MWPClient');
 
-    this.communicator = getCommunicator(this.wallet);
-
     // default values
     this.accounts = [];
     this.chain = {
@@ -67,8 +63,7 @@ export class MWPClient {
 
     this.handshake = this.handshake.bind(this);
     this.request = this.request.bind(this);
-    this.createRequestMessage = this.createRequestMessage.bind(this);
-    this.decryptResponseMessage = this.decryptResponseMessage.bind(this);
+    this.reset = this.reset.bind(this);
   }
 
   private async initialize() {
@@ -96,8 +91,10 @@ export class MWPClient {
         params: this.metadata,
       },
     });
-    const response: RPCResponseMessage =
-      await this.communicator.postRequestAndWaitForResponse(handshakeMessage);
+    const response: RPCResponseMessage = await Communicator.postRequestToWallet(
+      handshakeMessage,
+      this.wallet
+    );
 
     // store peer's public key
     if ('failure' in response.content) throw response.content.failure;
@@ -219,7 +216,7 @@ export class MWPClient {
     );
     const message = await this.createRequestMessage({ encrypted });
 
-    return this.communicator.postRequestAndWaitForResponse(message);
+    return Communicator.postRequestToWallet(message, this.wallet);
   }
 
   private async createRequestMessage(
@@ -232,7 +229,7 @@ export class MWPClient {
       content,
       sdkVersion: LIB_VERSION,
       timestamp: new Date(),
-      ...(this.metadata.appDeeplinkUrl && { callbackUrl: this.metadata.appDeeplinkUrl }),
+      callbackUrl: this.metadata.appDeeplinkUrl,
     };
   }
 

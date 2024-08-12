@@ -22,7 +22,7 @@
     "test": "jest",
     "test:coverage": "yarn test:unit && open coverage/lcov-report/index.html",
     "prebuild": "rm -rf ./build && node -p \"'export const LIB_VERSION = \\'' + require('./package.json').version + '\\';'\" > src/version.ts",
-    "build": "tsc -p ./tsconfig.build.json && tsc-alias && cp -a src/vendor-js dist",
+    "build": "tsc -p ./tsconfig.build.json && tsc-alias",
     "dev": "tsc --watch & nodemon --watch dist --delay 1 --exec tsc-alias",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx --fix"

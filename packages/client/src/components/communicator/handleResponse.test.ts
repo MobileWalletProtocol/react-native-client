@@ -1,65 +1,62 @@
 import { handleResponse } from './handleResponse';
 import { WebBasedWalletCommunicator } from './webBased/Communicator';
 import { MWP_RESPONSE_PATH } from ':core/constants';
-import { Wallet } from ':core/wallet';
 
-jest.mock('./webBased/Communicator');
-jest.mock('expo-web-browser', () => ({
-  openBrowserAsync: jest.fn(),
-  WebBrowserPresentationStyle: {
-    FORM_SHEET: 'FORM_SHEET',
+jest.mock('./webBased/Communicator', () => ({
+  WebBasedWalletCommunicator: {
+    handleResponse: jest.fn(),
   },
-  dismissBrowser: jest.fn(),
 }));
 
 describe('handleResponse', () => {
-  const mockWebBasedWallet = { type: 'webBased', scheme: 'https://example.com' } as Wallet;
-  const mockNativeWallet = { type: 'native' } as Wallet;
-  const mockOtherWallet = { type: 'other' as any } as Wallet;
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('returns false for non-MWP response URLs', () => {
-    const url = 'https://example.com/some-path';
-    expect(handleResponse(url, mockWebBasedWallet)).toBe(false);
-  });
-
-  test('handles web-based wallet response correctly', () => {
-    const url = `https://example.com/${MWP_RESPONSE_PATH}/some-params`;
-    const mockHandleResponse = jest.fn().mockReturnValue(true);
-    (WebBasedWalletCommunicator.getInstance as jest.Mock).mockReturnValue({
-      handleResponse: mockHandleResponse,
-    });
-
-    const result = handleResponse(url, mockWebBasedWallet);
-
-    expect(WebBasedWalletCommunicator.getInstance).toHaveBeenCalledWith(mockWebBasedWallet.scheme);
-    expect(mockHandleResponse).toHaveBeenCalledWith(url);
-    expect(result).toBe(true);
-  });
-
-  test('throws error for native wallet', () => {
-    const url = `https://example.com/${MWP_RESPONSE_PATH}/some-params`;
-    expect(() => handleResponse(url, mockNativeWallet)).toThrow('Native wallet not supported yet');
-  });
-
-  test('returns false for unsupported wallet types', () => {
-    const url = `https://example.com/${MWP_RESPONSE_PATH}/some-params`;
-    expect(handleResponse(url, mockOtherWallet)).toBe(false);
-  });
-
-  test('WebBasedWalletCommunicator.handleResponse returns false', () => {
-    const url = `https://example.com/${MWP_RESPONSE_PATH}/some-params`;
-    const mockHandleResponse = jest.fn().mockReturnValue(false);
-    (WebBasedWalletCommunicator.getInstance as jest.Mock).mockReturnValue({
-      handleResponse: mockHandleResponse,
-    });
-
-    const result = handleResponse(url, mockWebBasedWallet);
-
-    expect(mockHandleResponse).toHaveBeenCalledWith(url);
+  it('should return false if the pathname does not include MWP_RESPONSE_PATH', () => {
+    const responseUrl = 'https://example.com/some-other-path';
+    const result = handleResponse(responseUrl);
     expect(result).toBe(false);
+    expect(WebBasedWalletCommunicator.handleResponse).not.toHaveBeenCalled();
+  });
+
+  it('should return true if WebBasedWalletCommunicator handles the response successfully', () => {
+    const responseUrl = `https://example.com/${MWP_RESPONSE_PATH}/some-params`;
+    (WebBasedWalletCommunicator.handleResponse as jest.Mock).mockReturnValue(true);
+
+    const result = handleResponse(responseUrl);
+
+    expect(result).toBe(true);
+    expect(WebBasedWalletCommunicator.handleResponse).toHaveBeenCalledWith(responseUrl);
+  });
+
+  it('should return false if WebBasedWalletCommunicator does not handle the response', () => {
+    const responseUrl = `https://example.com/${MWP_RESPONSE_PATH}/some-params`;
+    (WebBasedWalletCommunicator.handleResponse as jest.Mock).mockReturnValue(false);
+
+    const result = handleResponse(responseUrl);
+
+    expect(result).toBe(false);
+    expect(WebBasedWalletCommunicator.handleResponse).toHaveBeenCalledWith(responseUrl);
+  });
+
+  it('should handle different URL formats correctly', () => {
+    const responseUrls = [
+      `https://example.com/${MWP_RESPONSE_PATH}`,
+      `https://example.com/${MWP_RESPONSE_PATH}/`,
+      `https://example.com/${MWP_RESPONSE_PATH}?param=value`,
+      `https://example.com/${MWP_RESPONSE_PATH}/?param=value`,
+    ];
+
+    responseUrls.forEach((url) => {
+      (WebBasedWalletCommunicator.handleResponse as jest.Mock).mockReturnValue(true);
+      expect(handleResponse(url)).toBe(true);
+      expect(WebBasedWalletCommunicator.handleResponse).toHaveBeenCalledWith(url);
+    });
+  });
+
+  it('should throw an error for invalid URLs', () => {
+    const invalidUrl = 'not-a-valid-url';
+    expect(() => handleResponse(invalidUrl)).toThrow('Invalid URL');
   });
 });

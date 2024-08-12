@@ -1,2 +1,2 @@
-export * from './getCommunicator';
 export * from './handleResponse';
+export * from './postRequestToWallet';

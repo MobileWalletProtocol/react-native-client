@@ -1,6 +1,5 @@
 import { WebBasedWalletCommunicator } from 'src/components/communicator/webBased/Communicator';
 
-import { CommunicatorInterface, getCommunicator } from './components/communicator';
 import { KeyManager } from './components/key/KeyManager';
 import { MWPClient } from './MWPClient';
 import {
@@ -57,7 +56,6 @@ const mockWallet = Wallets.CoinbaseSmartWallet;
 describe('MWPClient', () => {
   let signer: MWPClient;
   let mockMetadata: AppMetadata;
-  let mockCommunicator: CommunicatorInterface;
   let mockKeyManager: jest.Mocked<KeyManager>;
 
   beforeEach(async () => {
@@ -67,10 +65,8 @@ describe('MWPClient', () => {
       appDeeplinkUrl: 'https://example.com',
     };
 
-    WebBasedWalletCommunicator.communicators.clear();
-    mockCommunicator = getCommunicator(mockWallet);
     jest
-      .spyOn(mockCommunicator, 'postRequestAndWaitForResponse')
+      .spyOn(WebBasedWalletCommunicator, 'postRequestAndWaitForResponse')
       .mockResolvedValue(mockSuccessResponse);
 
     mockKeyManager = new KeyManager({
@@ -126,7 +122,9 @@ describe('MWPClient', () => {
         content: { failure: mockError },
         timestamp: new Date(),
       };
-      (mockCommunicator.postRequestAndWaitForResponse as jest.Mock).mockResolvedValue(mockResponse);
+      (WebBasedWalletCommunicator.postRequestAndWaitForResponse as jest.Mock).mockResolvedValue(
+        mockResponse
+      );
 
       await expect(signer.handshake()).rejects.toThrowError(mockError);
     });
@@ -165,11 +163,12 @@ describe('MWPClient', () => {
       const result = await signer.request(mockRequest);
 
       expect(encryptContent).toHaveBeenCalled();
-      expect(mockCommunicator.postRequestAndWaitForResponse).toHaveBeenCalledWith(
+      expect(WebBasedWalletCommunicator.postRequestAndWaitForResponse).toHaveBeenCalledWith(
         expect.objectContaining({
           sender: '0xPublicKey',
           content: { encrypted: encryptedData },
-        })
+        }),
+        mockWallet.scheme
       );
       expect(result).toEqual('0xSignature');
     });

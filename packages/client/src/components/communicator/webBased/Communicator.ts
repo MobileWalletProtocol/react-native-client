@@ -4,7 +4,7 @@ import { HashedContent } from './types';
 import { standardErrors } from ':core/error';
 import { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
 
-export class WebBasedWalletCommunicatorClass {
+class WebBasedWalletCommunicatorClass {
   private responseHandlers = new Map<MessageID, (_: RPCResponseMessage) => void>();
 
   postRequestAndWaitForResponse = (

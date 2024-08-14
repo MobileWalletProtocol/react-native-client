@@ -35,8 +35,8 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
   const walletName = toCamelCase(parameters.metadata.appName);
 
   return createConnector<Provider>((config) => ({
-    id: `walletName`,
-    name: `walletName`,
+    id: walletName,
+    name: walletName,
     supportsSimulation: parameters.wallet.supportsSimulation,
     type: parameters.wallet.wagmiType ?? walletName,
     async connect({ chainId } = {}) {

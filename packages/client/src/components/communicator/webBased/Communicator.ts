@@ -1,6 +1,6 @@
 import * as WebBrowser from 'expo-web-browser';
 
-import { HashedContent } from './types';
+import { decodeResponseURLParams, encodeRequestURLParams } from './encoding';
 import { standardErrors } from ':core/error';
 import { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
 
@@ -13,12 +13,8 @@ class WebBasedWalletCommunicatorClass {
   ): Promise<RPCResponseMessage> => {
     return new Promise((resolve, reject) => {
       // 1. generate request URL
-      const urlParams = new URLSearchParams();
-      Object.entries(request).forEach(([key, value]) => {
-        urlParams.append(key, JSON.stringify(value));
-      });
       const requestUrl = new URL(walletScheme);
-      requestUrl.search = urlParams.toString();
+      requestUrl.search = encodeRequestURLParams(request);
 
       // 2. save response
       this.responseHandlers.set(request.id, resolve);
@@ -43,22 +39,7 @@ class WebBasedWalletCommunicatorClass {
 
   handleResponse = (responseUrl: string): boolean => {
     const { searchParams } = new URL(responseUrl);
-    const parseParam = <T>(paramName: string) => {
-      return JSON.parse(searchParams.get(paramName) as string) as T;
-    };
-
-    const hashedContent = parseParam<HashedContent>('content');
-
-    // TODO: un-hash content
-    const content = hashedContent as RPCResponseMessage['content'];
-
-    const response: RPCResponseMessage = {
-      id: parseParam<MessageID>('id'),
-      sender: parseParam<string>('sender'),
-      requestId: parseParam<MessageID>('requestId'),
-      content,
-      timestamp: new Date(parseParam<string>('timestamp')),
-    };
+    const response = decodeResponseURLParams(searchParams);
 
     const handler = this.responseHandlers.get(response.requestId);
     if (handler) {

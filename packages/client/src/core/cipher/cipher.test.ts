@@ -289,14 +289,6 @@ describe('cipher', () => {
       _key: Uint8Array;
     };
 
-    function serializeAndDeserialize(obj: any): any {
-      Object.entries(obj).forEach(([key, value]) => {
-        obj[key] = JSON.parse(JSON.stringify(value));
-      });
-
-      return obj;
-    }
-
     beforeAll(async () => {
       const aliceKeyPair = await generateKeyPair();
       const bobKeyPair = await generateKeyPair();
@@ -315,9 +307,7 @@ describe('cipher', () => {
       expect(encrypted).toHaveProperty('iv');
       expect(encrypted).toHaveProperty('cipherText');
 
-      const transmittedContent = serializeAndDeserialize(encrypted);
-
-      const decrypted = await decryptContent<RPCRequest>(transmittedContent, sharedSecret);
+      const decrypted = await decryptContent<RPCRequest>(encrypted, sharedSecret);
       expect(decrypted).toEqual(request);
     });
 
@@ -332,9 +322,7 @@ describe('cipher', () => {
       expect(encrypted).toHaveProperty('iv');
       expect(encrypted).toHaveProperty('cipherText');
 
-      const transmittedContent = serializeAndDeserialize(encrypted);
-
-      const decrypted = await decryptContent<RPCResponse>(transmittedContent, sharedSecret);
+      const decrypted = await decryptContent<RPCResponse>(encrypted, sharedSecret);
       expect(decrypted).toEqual(response);
     });
 
@@ -352,16 +340,14 @@ describe('cipher', () => {
       expect(encrypted).toHaveProperty('iv');
       expect(encrypted).toHaveProperty('cipherText');
 
-      const transmittedContent = serializeAndDeserialize(encrypted);
-
-      const decrypted = await decryptContent<RPCResponse>(transmittedContent, sharedSecret);
+      const decrypted = await decryptContent<RPCResponse>(encrypted, sharedSecret);
       expect(decrypted).toEqual(errorResponse);
     });
 
     it('should throw an error when decrypting invalid data', async () => {
       const invalidEncryptedData = {
-        iv: { 0: 1, 1: 2, 2: 3 },
-        cipherText: { 0: 4, 1: 5, 2: 6 },
+        iv: new Uint8Array([1, 2, 3]),
+        cipherText: new Uint8Array([4, 5, 6]),
       };
 
       await expect(decryptContent(invalidEncryptedData, sharedSecret)).rejects.toThrow();

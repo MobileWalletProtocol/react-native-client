@@ -143,25 +143,12 @@ export async function encryptContent(
 
 export async function decryptContent<R extends RPCRequest | RPCResponse>(
   encryptedData: {
-    // TODO: this is temp
-    iv: unknown;
-    cipherText: unknown;
+    iv: Uint8Array;
+    cipherText: Uint8Array;
   },
   sharedSecret: CryptoKey
 ): Promise<R> {
-  function convertObjectToUint8Array(obj: Record<string, number>): Uint8Array {
-    const sortedValues = Object.entries(obj)
-      .sort(([a], [b]) => parseInt(a) - parseInt(b))
-      .map(([_, value]) => value);
-    return new Uint8Array(sortedValues);
-  }
-
-  return JSON.parse(
-    await decrypt(sharedSecret, {
-      iv: convertObjectToUint8Array(encryptedData.iv as Record<string, number>),
-      cipherText: convertObjectToUint8Array(encryptedData.cipherText as Record<string, number>),
-    })
-  );
+  return JSON.parse(await decrypt(sharedSecret, encryptedData));
 }
 
 function encodeLength(length: number): Uint8Array {

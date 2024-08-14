@@ -85,6 +85,8 @@ export class MWPClient {
   }
 
   async handshake(): Promise<AddressString[]> {
+    if (this.accounts.length > 0) return this.accounts;
+
     const handshakeMessage = await this.createRequestMessage({
       handshake: {
         method: 'eth_requestAccounts',

@@ -1,0 +1,10 @@
+{
+    "repository": "https://github.com/MobileWalletProtocol/react-native-client.git",
+    "author": "Coinbase, Inc.",
+    "license": "Apache-2.0",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "packageManager": "yarn@4.4.0"
+}

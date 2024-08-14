@@ -7,8 +7,8 @@ type EncodedResponseContent =
   | { failure: SerializedEthereumRpcError }
   | {
       encrypted: {
-        iv: string | Record<string, number>;
-        cipherText: string | Record<string, number>;
+        iv: string;
+        cipherText: string;
       };
     };
 
@@ -30,11 +30,8 @@ export function decodeResponseURLParams(params: URLSearchParams): RPCResponseMes
     const { iv, cipherText } = contentParam.encrypted;
     content = {
       encrypted: {
-        iv: typeof iv === 'string' ? hexToBytes(iv) : convertObjectToUint8Array(iv),
-        cipherText:
-          typeof cipherText === 'string'
-            ? hexToBytes(cipherText)
-            : convertObjectToUint8Array(cipherText),
+        iv: hexToBytes(iv),
+        cipherText: hexToBytes(cipherText),
       },
     };
   }
@@ -75,19 +72,4 @@ export function encodeRequestURLParams(request: RPCRequestMessage) {
   }
 
   return urlParams.toString();
-}
-
-/**
- * Converts from a JSON.stringify-ied object to a Uint8Array
- * `{ "0": 1, "1": 2, "2": 3 }` to `Uint8Array([1, 2, 3])`
- */
-function convertObjectToUint8Array(obj: Record<string, number>): Uint8Array {
-  const length = Object.keys(obj).length;
-  const bytes = new Uint8Array(length);
-
-  for (let i = 0; i < length; i++) {
-    bytes[i] = obj[i];
-  }
-
-  return bytes;
 }

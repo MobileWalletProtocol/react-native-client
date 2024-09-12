@@ -1,3 +1,4 @@
+import { LIB_VERSION } from '../../version';
 import { checkErrorForInvalidRequestArgs, fetchRPCRequest } from './utils';
 import { standardErrors } from ':core/error';
 
@@ -20,6 +21,9 @@ const invalidParamsError = (args) =>
     data: args,
   });
 
+const mockUUID = '123e4567-e89b-12d3-a456-426614174000';
+jest.spyOn(crypto, 'randomUUID').mockReturnValue(mockUUID);
+
 describe('Utils', () => {
   describe('fetchRPCRequest', () => {
     function mockFetchResponse(response: unknown) {
@@ -27,6 +31,33 @@ describe('Utils', () => {
         json: jest.fn().mockResolvedValue(response),
       });
     }
+
+    it('should make a POST request with correct parameters', async () => {
+      const mockResponse = { json: jest.fn().mockResolvedValue({ result: '0x1' }) };
+      mockFetchResponse({ id: 1, result: mockResponse, error: null });
+
+      const mockRpcUrl = 'https://example.com/rpc';
+      const mockRequestArguments = {
+        method: 'eth_getBalance',
+        params: ['0x742d35Cc6634C0532925a3b844Bc454e4438f44e', 'latest'],
+      };
+      await fetchRPCRequest(mockRequestArguments, mockRpcUrl);
+
+      expect(fetch).toHaveBeenCalledWith(mockRpcUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          ...mockRequestArguments,
+          jsonrpc: '2.0',
+          id: mockUUID,
+        }),
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Cbw-Sdk-Version': LIB_VERSION,
+          'X-Cbw-Sdk-Platform': '@mobile-wallet-protocol/client',
+        },
+      });
+    });
 
     it('should throw if the response has an error', async () => {
       mockFetchResponse({

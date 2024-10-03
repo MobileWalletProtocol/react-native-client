@@ -14,7 +14,6 @@ describe('encoding', () => {
           method: 'eth_requestAccounts',
           params: {
             appName: 'My App',
-            appDeeplinkUrl: 'https://myapp.example.com',
           },
         },
       },
@@ -23,7 +22,7 @@ describe('encoding', () => {
     const result = encodeRequestURLParams(request);
 
     expect(result).toEqual(
-      'id=%221%22&sender=%22sender%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.example.com%22&timestamp=%222021-01-01T00%3A00%3A00.000Z%22&content=%7B%22handshake%22%3A%7B%22method%22%3A%22eth_requestAccounts%22%2C%22params%22%3A%7B%22appName%22%3A%22My+App%22%2C%22appDeeplinkUrl%22%3A%22https%3A%2F%2Fmyapp.example.com%22%7D%7D%7D'
+      'id=%221%22&sender=%22sender%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.example.com%22&timestamp=%222021-01-01T00%3A00%3A00.000Z%22&content=%7B%22handshake%22%3A%7B%22method%22%3A%22eth_requestAccounts%22%2C%22params%22%3A%7B%22appName%22%3A%22My+App%22%7D%7D%7D'
     );
   });
 
@@ -33,6 +32,29 @@ describe('encoding', () => {
       sender: 'sender',
       sdkVersion: '1.0.0',
       callbackUrl: 'https://callback.example.com',
+      timestamp: new Date('2021-01-01T00:00:00Z'),
+      content: {
+        encrypted: {
+          iv: new Uint8Array([1, 2, 3]),
+          cipherText: new Uint8Array([4, 5, 6]),
+        },
+      },
+    };
+
+    const result = encodeRequestURLParams(request);
+
+    expect(result).toEqual(
+      'id=%221%22&sender=%22sender%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.example.com%22&timestamp=%222021-01-01T00%3A00%3A00.000Z%22&content=%7B%22encrypted%22%3A%7B%22iv%22%3A%22010203%22%2C%22cipherText%22%3A%22040506%22%7D%7D'
+    );
+  });
+
+  it('should emit falsy param when encoding', () => {
+    const request: RPCRequestMessage = {
+      id: '1' as MessageID,
+      sender: 'sender',
+      sdkVersion: '1.0.0',
+      callbackUrl: 'https://callback.example.com',
+      customScheme: undefined, // falsy
       timestamp: new Date('2021-01-01T00:00:00Z'),
       content: {
         encrypted: {

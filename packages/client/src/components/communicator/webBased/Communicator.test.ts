@@ -230,7 +230,10 @@ describe('Communicator', () => {
         },
       };
 
-      const mockHandler = jest.fn();
+      const mockHandler = {
+        resolve: jest.fn(),
+        reject: jest.fn(),
+      };
       WebBasedWalletCommunicator['responseHandlers'].set(mockErrorResponse.requestId, mockHandler);
 
       const responseUrl =
@@ -238,13 +241,16 @@ describe('Communicator', () => {
 
       WebBasedWalletCommunicator.handleResponse(responseUrl);
 
-      expect(mockHandler).toHaveBeenCalledWith(mockErrorResponse);
+      expect(mockHandler.resolve).toHaveBeenCalledWith(mockErrorResponse);
       expect(WebBasedWalletCommunicator['responseHandlers'].size).toBe(0);
       expect(WebBrowser.dismissBrowser).toHaveBeenCalled();
     });
 
     it('should parse response and call the correct handler', () => {
-      const mockHandler = jest.fn();
+      const mockHandler = {
+        resolve: jest.fn(),
+        reject: jest.fn(),
+      };
       WebBasedWalletCommunicator['responseHandlers'].set(
         mockHandshakeResponse.requestId,
         mockHandler
@@ -252,7 +258,7 @@ describe('Communicator', () => {
 
       WebBasedWalletCommunicator.handleResponse(responseUrl);
 
-      expect(mockHandler).toHaveBeenCalledWith(mockHandshakeResponse);
+      expect(mockHandler.resolve).toHaveBeenCalledWith(mockHandshakeResponse);
       expect(WebBasedWalletCommunicator['responseHandlers'].size).toBe(0);
       expect(WebBrowser.dismissBrowser).toHaveBeenCalled();
     });
@@ -262,7 +268,10 @@ describe('Communicator', () => {
     });
 
     it('should return true if the communicator handled the message', () => {
-      const mockHandler = jest.fn();
+      const mockHandler = {
+        resolve: jest.fn(),
+        reject: jest.fn(),
+      };
       WebBasedWalletCommunicator['responseHandlers'].set(
         mockHandshakeResponse.requestId,
         mockHandler
@@ -282,8 +291,12 @@ describe('Communicator', () => {
 
   describe('disconnect', () => {
     it('should clear all response handlers', () => {
-      WebBasedWalletCommunicator['responseHandlers'].set('123' as MessageID, jest.fn());
-      WebBasedWalletCommunicator['responseHandlers'].set('456' as MessageID, jest.fn());
+      const mockHandler = {
+        resolve: jest.fn(),
+        reject: jest.fn(),
+      };
+      WebBasedWalletCommunicator['responseHandlers'].set('123' as MessageID, mockHandler);
+      WebBasedWalletCommunicator['responseHandlers'].set('456' as MessageID, mockHandler);
 
       WebBasedWalletCommunicator['disconnect']();
 

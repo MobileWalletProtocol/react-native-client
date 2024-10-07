@@ -1,9 +1,11 @@
-import { decodeResponseURLParams, encodeRequestURLParams } from './encoding';
-import { MessageID, RPCRequestMessage } from ':core/message';
+import { bytesToHex } from '@noble/hashes/utils';
+
+import { decodeResponseURLParams, encodeRequestURLParams, MobileRequestMessage } from './encoding';
+import { MessageID } from ':core/message';
 
 describe('encoding', () => {
   it('should encode handshake URL params', () => {
-    const request: RPCRequestMessage = {
+    const request: MobileRequestMessage = {
       id: '1' as MessageID,
       sender: 'sender',
       sdkVersion: '1.0.0',
@@ -27,7 +29,7 @@ describe('encoding', () => {
   });
 
   it('should encode encrypted URL params', () => {
-    const request: RPCRequestMessage = {
+    const request: MobileRequestMessage = {
       id: '1' as MessageID,
       sender: 'sender',
       sdkVersion: '1.0.0',
@@ -35,8 +37,8 @@ describe('encoding', () => {
       timestamp: new Date('2021-01-01T00:00:00Z'),
       content: {
         encrypted: {
-          iv: new Uint8Array([1, 2, 3]),
-          cipherText: new Uint8Array([4, 5, 6]),
+          iv: bytesToHex(new Uint8Array([1, 2, 3])),
+          cipherText: bytesToHex(new Uint8Array([4, 5, 6])),
         },
       },
     };

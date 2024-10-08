@@ -42,12 +42,16 @@ class WebBasedWalletCommunicatorClass {
       this.resolvePendingSegment(response.requestId);
     }, 750);
 
-    if ('segment' in response.content) {
+    if ('segment' in response.content && response.content.segment.ack) {
       // don't resolve the request if the response is a segment ack
       return true;
     }
 
-    return this.resolvePendingRequest(response.requestId, response as RPCResponseMessage);
+    if ('failure' in response.content || 'encrypted' in response.content) {
+      return this.resolvePendingRequest(response.requestId, response as RPCResponseMessage);
+    }
+
+    return false;
   };
 
   private sendSegments = async (segments: MobileRequestMessage[], walletScheme: string) => {

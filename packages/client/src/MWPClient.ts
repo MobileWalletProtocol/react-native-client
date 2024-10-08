@@ -49,6 +49,9 @@ export class MWPClient {
       ...metadata,
       appName: metadata.appName || 'Dapp',
       appDeeplinkUrl: appendMWPResponsePath(metadata.appDeeplinkUrl),
+      appCustomScheme: metadata.appCustomScheme
+        ? appendMWPResponsePath(metadata.appCustomScheme)
+        : undefined,
     };
 
     this.wallet = wallet;
@@ -90,7 +93,10 @@ export class MWPClient {
     const handshakeMessage = await this.createRequestMessage({
       handshake: {
         method: 'eth_requestAccounts',
-        params: this.metadata,
+        params: {
+          appName: this.metadata.appName,
+          appLogoUrl: this.metadata.appLogoUrl,
+        },
       },
     });
     const response: RPCResponseMessage = await Communicator.postRequestToWallet(
@@ -233,6 +239,7 @@ export class MWPClient {
       sdkVersion: LIB_VERSION,
       timestamp: new Date(),
       callbackUrl: this.metadata.appDeeplinkUrl,
+      customScheme: this.metadata.appCustomScheme,
     };
   }
 

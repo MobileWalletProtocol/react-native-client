@@ -34,23 +34,38 @@ export interface ProviderInterface extends ProviderEventEmitter {
 export type ProviderEventCallback = ProviderInterface['emit'];
 
 export interface AppMetadata {
-  /** Application name */
+  /**
+   * @param appName
+   * @type string
+   * @description Application name
+   */
   appName: string;
-  /** Application logo image URL; favicon is used if unspecified */
-  // TODO: make this required
+  /**
+   * @param appLogoUrl
+   * @type {string}
+   * @description Application logo image URL
+   */
   appLogoUrl?: string;
-  /** Array of chainIds your dapp supports */
+  /**
+   * @param appChainIds
+   * @type {number[]}
+   * @description Array of chainIds in number your dapp supports
+   */
   appChainIds?: number[];
-  /** Mobile Only: Universal Link url or App Link url */
+  /**
+   * @param appDeeplinkUrl
+   * @type string
+   * @note HTTPS URL is required for production
+   * @description Universal Link url on iOS or App Link url on Android to establish app's identity
+   * @example 'https://example.com'
+   */
   appDeeplinkUrl: string;
-}
-
-export interface Preference {
-  options: 'all' | 'smartWalletOnly' | 'eoaOnly';
-  keysUrl?: string;
-}
-
-export interface ConstructorOptions {
-  metadata: AppMetadata;
-  preference: Preference;
+  /**
+   * @param appCustomScheme
+   * @type {string}
+   * @note Optional, but will be required in next minor version
+   * @description Custom URL scheme used for establishing less disruptive communication channel with wallet
+   * @example 'myapp://'
+   */
+  appCustomScheme?: string;
 }

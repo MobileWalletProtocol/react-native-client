@@ -16,7 +16,8 @@ export type EncryptedData = {
 
 export interface RPCRequestMessage extends RPCMessage {
   sdkVersion: string;
-  callbackUrl?: string;
+  callbackUrl: string;
+  customScheme?: string;
   content:
     | {
         handshake: RequestAccountsAction;
@@ -39,5 +40,5 @@ export interface RPCResponseMessage extends RPCMessage {
 
 type RequestAccountsAction = {
   method: 'eth_requestAccounts';
-  params: AppMetadata;
+  params: Pick<AppMetadata, 'appName' | 'appLogoUrl'>;
 };

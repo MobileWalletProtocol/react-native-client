@@ -9,6 +9,7 @@ import {
   importKeyFromHexString,
 } from ':core/cipher/cipher';
 import { CryptoKey } from ':core/cipher/types';
+import { MWP_RESPONSE_PATH } from ':core/constants';
 import { standardErrors } from ':core/error';
 import { EncryptedData, RPCResponseMessage } from ':core/message';
 import { AppMetadata, RequestArguments } from ':core/provider/interface';
@@ -16,7 +17,13 @@ import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
 import { fetchRPCRequest } from ':core/util/utils';
 import { Wallets } from ':core/wallet';
 
-jest.mock(':core/util/utils');
+jest.mock(':core/util/utils', () => {
+  const actual = jest.requireActual(':core/util/utils');
+  return {
+    ...actual,
+    fetchRPCRequest: jest.fn(),
+  };
+});
 
 jest.mock('expo-web-browser', () => ({
   openBrowserAsync: jest.fn(),
@@ -57,7 +64,7 @@ const mockSuccessResponse: RPCResponseMessage = {
 const mockWallet = Wallets.CoinbaseSmartWallet;
 
 describe('MWPClient', () => {
-  let signer: MWPClient;
+  let client: MWPClient;
   let mockMetadata: AppMetadata;
   let mockKeyManager: jest.Mocked<KeyManager>;
 
@@ -66,6 +73,7 @@ describe('MWPClient', () => {
       appName: 'test',
       appChainIds: [1],
       appDeeplinkUrl: 'https://example.com',
+      appCustomScheme: 'myapp://',
     };
 
     jest
@@ -83,9 +91,23 @@ describe('MWPClient', () => {
     mockKeyManager.getSharedSecret.mockResolvedValue(mockCryptoKey);
     (encryptContent as jest.Mock).mockResolvedValueOnce(encryptedData);
 
-    signer = await MWPClient.createInstance({
+    client = await MWPClient.createInstance({
       metadata: mockMetadata,
       wallet: mockWallet,
+    });
+  });
+
+  it('should create an instance', () => {
+    expect(client).toBeInstanceOf(MWPClient);
+    expect(client['wallet']).toBe(mockWallet);
+    expect(client['keyManager']).toBe(mockKeyManager);
+    expect(client['chain']).toEqual({ id: 1 });
+    expect(client['accounts']).toEqual([]);
+    expect(client['metadata']).toEqual({
+      appName: 'test',
+      appChainIds: [1],
+      appDeeplinkUrl: `https://example.com/${MWP_RESPONSE_PATH}`,
+      appCustomScheme: `myapp:///${MWP_RESPONSE_PATH}`,
     });
   });
 
@@ -101,7 +123,7 @@ describe('MWPClient', () => {
         },
       });
 
-      await signer.handshake();
+      await client.handshake();
 
       expect(importKeyFromHexString).toHaveBeenCalledWith('public', '0xPublicKey');
       expect(mockKeyManager.setPeerPublicKey).toHaveBeenCalledWith(mockCryptoKey);
@@ -114,7 +136,7 @@ describe('MWPClient', () => {
       expect(storageStoreSpy).toHaveBeenCalledWith('walletCapabilities', mockCapabilities);
       expect(storageStoreSpy).toHaveBeenCalledWith('accounts', ['0xAddress']);
 
-      expect(signer.request({ method: 'eth_requestAccounts' })).resolves.toEqual(['0xAddress']);
+      expect(client.request({ method: 'eth_requestAccounts' })).resolves.toEqual(['0xAddress']);
     });
 
     it('should throw an error if failure in response.content', async () => {
@@ -129,7 +151,7 @@ describe('MWPClient', () => {
         mockResponse
       );
 
-      await expect(signer.handshake()).rejects.toThrowError(mockError);
+      await expect(client.handshake()).rejects.toThrowError(mockError);
     });
   });
 
@@ -163,7 +185,7 @@ describe('MWPClient', () => {
         },
       });
 
-      const result = await signer.request(mockRequest);
+      const result = await client.request(mockRequest);
 
       expect(encryptContent).toHaveBeenCalled();
       expect(WebBasedWalletCommunicator.postRequestAndWaitForResponse).toHaveBeenCalledWith(
@@ -203,7 +225,7 @@ describe('MWPClient', () => {
         },
       });
 
-      await signer.request(mockRequest);
+      await client.request(mockRequest);
 
       expect(WebBasedWalletCommunicator.postRequestAndWaitForResponse).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -225,7 +247,7 @@ describe('MWPClient', () => {
         params: [],
       };
 
-      await signer.request(mockRequest);
+      await client.request(mockRequest);
 
       expect(fetchRPCRequest).toHaveBeenCalledWith(mockRequest, 'https://eth-rpc.example.com/1');
     });
@@ -242,7 +264,7 @@ describe('MWPClient', () => {
         },
       });
 
-      await expect(signer.request(mockRequest)).rejects.toThrowError(mockError);
+      await expect(client.request(mockRequest)).rejects.toThrowError(mockError);
     });
 
     it('should update internal state for successful wallet_switchEthereumChain', async () => {
@@ -261,7 +283,7 @@ describe('MWPClient', () => {
         },
       });
 
-      await signer.request(mockRequest);
+      await client.request(mockRequest);
 
       expect(storageStoreSpy).toHaveBeenCalledWith('availableChains', [
         { id: 1, rpcUrl: 'https://eth-rpc.example.com/1' },
@@ -273,12 +295,12 @@ describe('MWPClient', () => {
 
   describe('reset', () => {
     it('should reset successfully', async () => {
-      await signer.reset();
+      await client.reset();
 
       expect(storageClearSpy).toHaveBeenCalled();
       expect(mockKeyManager.clear).toHaveBeenCalled();
-      expect(signer['accounts']).toEqual([]);
-      expect(signer['chain']).toEqual({ id: 1 });
+      expect(client['accounts']).toEqual([]);
+      expect(client['chain']).toEqual({ id: 1 });
     });
   });
 });

@@ -48,13 +48,14 @@ export function decodeResponseURLParams(params: URLSearchParams): RPCResponseMes
 export function encodeRequestURLParams(request: RPCRequestMessage) {
   const urlParams = new URLSearchParams();
   const appendParam = (key: string, value: unknown) => {
-    urlParams.append(key, JSON.stringify(value));
+    if (value) urlParams.append(key, JSON.stringify(value));
   };
 
   appendParam('id', request.id);
   appendParam('sender', request.sender);
   appendParam('sdkVersion', request.sdkVersion);
   appendParam('callbackUrl', request.callbackUrl);
+  appendParam('customScheme', request.customScheme);
   appendParam('timestamp', request.timestamp);
 
   if ('handshake' in request.content) {

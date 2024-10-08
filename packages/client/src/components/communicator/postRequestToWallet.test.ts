@@ -16,9 +16,10 @@ describe('postRequestToWallet', () => {
     content: {
       handshake: {
         method: 'eth_requestAccounts',
-        params: { appName: 'test', appChainIds: [1], appDeeplinkUrl: 'https://example.com' },
+        params: { appName: 'test' },
       },
     },
+    callbackUrl: 'https://example.com',
     sender: 'Sender',
     timestamp: new Date(),
   };

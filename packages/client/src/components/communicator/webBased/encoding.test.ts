@@ -56,7 +56,7 @@ describe('encoding', () => {
   });
 
   it('should emit falsy param when encoding', () => {
-    const request: RPCRequestMessage = {
+    const request: MobileRequestMessage = {
       id: '1' as MessageID,
       sender: 'sender',
       sdkVersion: '1.0.0',
@@ -65,8 +65,8 @@ describe('encoding', () => {
       timestamp: new Date('2021-01-01T00:00:00Z'),
       content: {
         encrypted: {
-          iv: new Uint8Array([1, 2, 3]),
-          cipherText: new Uint8Array([4, 5, 6]),
+          iv: bytesToHex(new Uint8Array([1, 2, 3])),
+          cipherText: bytesToHex(new Uint8Array([4, 5, 6])),
         },
       },
     };

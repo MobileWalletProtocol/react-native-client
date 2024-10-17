@@ -10,13 +10,16 @@ import {
 } from './cipher';
 import { EncryptedData, RPCRequest, RPCResponse } from ':core/message';
 import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util';
+import * as fflate from "fflate";
 
 async function webEncrypt(sharedSecret: CryptoKey, plainText: string): Promise<EncryptedData> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
+  let encoded = new TextEncoder().encode(plainText)
+  let compressedBytes = fflate.zlibSync(encoded);
   const cipherText = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     sharedSecret,
-    new TextEncoder().encode(plainText)
+    compressedBytes
   );
 
   return { iv: new Uint8Array(iv), cipherText: new Uint8Array(cipherText) };
@@ -27,8 +30,8 @@ async function webDecrypt(
   { iv, cipherText }: EncryptedData
 ): Promise<string> {
   const plainText = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, sharedSecret, cipherText);
-
-  return new TextDecoder().decode(plainText);
+  let decompressed = fflate.unzlibSync(new Uint8Array(plainText));
+  return new TextDecoder().decode(decompressed);
 }
 
 function getFormat(keyType: 'public' | 'private') {

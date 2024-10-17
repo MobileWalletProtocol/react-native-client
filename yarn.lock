@@ -2112,6 +2112,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@msgpack/msgpack@npm:^3.0.0-beta2":
+  version: 3.0.0-beta2
+  resolution: "@msgpack/msgpack@npm:3.0.0-beta2"
+  checksum: 10c0/f4dc4c210bb722f0f7407214334dda728263cce8eb0d3f9af1a40a48e13ce175b599de35a757dce5f1d92a74d3ce4d0242feb67516f308a626058d0f98f01c70
+  languageName: node
+  linkType: hard
+
 "@noble/ciphers@npm:^0.5.3":
   version: 0.5.3
   resolution: "@noble/ciphers@npm:0.5.3"
@@ -4620,6 +4627,13 @@ __metadata:
   dependencies:
     bser: "npm:2.1.1"
   checksum: 10c0/feae89ac148adb8f6ae8ccd87632e62b13563e6fb114cacb5265c51f585b17e2e268084519fb2edd133872f1d47a18e6bfd7e5e08625c0d41b93149694187581
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.8.2":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 10c0/03448d630c0a583abea594835a9fdb2aaf7d67787055a761515bf4ed862913cfd693b4c4ffd5c3f3b355a70cf1e19033e9ae5aedcca103188aaff91b8bd6e293
   languageName: node
   linkType: hard
 
@@ -7889,6 +7903,9 @@ __metadata:
 "root-workspace-0b6124@workspace:.":
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
+  dependencies:
+    "@msgpack/msgpack": "npm:^3.0.0-beta2"
+    fflate: "npm:^0.8.2"
   languageName: unknown
   linkType: soft
 

@@ -1,76 +1,41 @@
-import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
+import * as fflate from 'fflate'; // TODO: only import what we need
+import { encode, decode } from "@msgpack/msgpack";
 
-import type { SerializedEthereumRpcError } from ':core/error';
-import type { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
-
-type EncodedResponseContent =
-  | { failure: SerializedEthereumRpcError }
-  | {
-      encrypted: {
-        iv: string;
-        cipherText: string;
-      };
-    };
+import type { RPCRequestMessage, RPCResponseMessage } from ':core/message';
 
 export function decodeResponseURLParams(params: URLSearchParams): RPCResponseMessage {
-  const parseParam = <T>(paramName: string) => {
-    const encodedValue = params.get(paramName);
-    if (!encodedValue) throw new Error(`Missing parameter: ${paramName}`);
-    return JSON.parse(encodedValue) as T;
-  };
+  const data = params.get('q');
+  if (!data) throw new Error(`Missing parameter: q`);
+  let compressedData = atob(data)
+  const len = compressedData.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = compressedData.charCodeAt(i);
+  }
+  let binData = fflate.unzlibSync(bytes)
+  let request = decode(binData) as RPCRequestMessage
 
-  const contentParam = parseParam<EncodedResponseContent>('content');
+  const contentParam = request.content;
 
   let content: RPCResponseMessage['content'];
   if ('failure' in contentParam) {
-    content = contentParam;
+    content = contentParam as { failure: any };
   }
 
-  if ('encrypted' in contentParam) {
-    const { iv, cipherText } = contentParam.encrypted;
-    content = {
-      encrypted: {
-        iv: hexToBytes(iv),
-        cipherText: hexToBytes(cipherText),
-      },
-    };
-  }
-
-  return {
-    id: parseParam<MessageID>('id'),
-    sender: parseParam<string>('sender'),
-    requestId: parseParam<MessageID>('requestId'),
-    timestamp: new Date(parseParam<string>('timestamp')),
+  return <RPCResponseMessage>{
+    id: request.id,
+    sender: request.sender,
+    requestId: request.requestId,
+    timestamp: request.timestamp,
     content: content!,
   };
 }
 
 export function encodeRequestURLParams(request: RPCRequestMessage) {
   const urlParams = new URLSearchParams();
-  const appendParam = (key: string, value: unknown) => {
-    if (value) urlParams.append(key, JSON.stringify(value));
-  };
-
-  appendParam('id', request.id);
-  appendParam('sender', request.sender);
-  appendParam('sdkVersion', request.sdkVersion);
-  appendParam('callbackUrl', request.callbackUrl);
-  appendParam('customScheme', request.customScheme);
-  appendParam('timestamp', request.timestamp);
-
-  if ('handshake' in request.content) {
-    appendParam('content', request.content);
-  }
-
-  if ('encrypted' in request.content) {
-    const encrypted = request.content.encrypted;
-    appendParam('content', {
-      encrypted: {
-        iv: bytesToHex(new Uint8Array(encrypted.iv)),
-        cipherText: bytesToHex(new Uint8Array(encrypted.cipherText)),
-      },
-    });
-  }
-
+  let ret = encode(request);
+  ret = fflate.zlibSync(ret)
+  let dataStr = btoa(String.fromCharCode(...ret))
+  urlParams.append("q", dataStr)
   return urlParams.toString();
 }

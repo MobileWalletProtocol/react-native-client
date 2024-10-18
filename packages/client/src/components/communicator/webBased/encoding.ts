@@ -1,4 +1,4 @@
-import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
+import { Buffer } from 'buffer';
 
 import type { SerializedEthereumRpcError } from ':core/error';
 import type { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
@@ -30,8 +30,8 @@ export function decodeResponseURLParams(params: URLSearchParams): RPCResponseMes
     const { iv, cipherText } = contentParam.encrypted;
     content = {
       encrypted: {
-        iv: hexToBytes(iv),
-        cipherText: hexToBytes(cipherText),
+        iv: new Uint8Array(Buffer.from(iv, 'base64')),
+        cipherText: new Uint8Array(Buffer.from(cipherText, 'base64')),
       },
     };
   }
@@ -64,10 +64,12 @@ export function encodeRequestURLParams(request: RPCRequestMessage) {
 
   if ('encrypted' in request.content) {
     const encrypted = request.content.encrypted;
+    const ivBytes = new Uint8Array(encrypted.iv);
+    const cipherTextBytes = new Uint8Array(encrypted.cipherText);
     appendParam('content', {
       encrypted: {
-        iv: bytesToHex(new Uint8Array(encrypted.iv)),
-        cipherText: bytesToHex(new Uint8Array(encrypted.cipherText)),
+        iv: Buffer.from(ivBytes).toString('base64'),
+        cipherText: Buffer.from(cipherTextBytes).toString('base64'),
       },
     });
   }

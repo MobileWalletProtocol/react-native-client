@@ -1,4 +1,4 @@
-import * as fflate from 'fflate'; // TODO: only import what we need
+import { deflateSync, inflateSync } from "fflate";
 import { encode, decode } from "@msgpack/msgpack";
 
 import type { RPCRequestMessage, RPCResponseMessage } from ':core/message';
@@ -12,7 +12,7 @@ export function decodeResponseURLParams(params: URLSearchParams): RPCResponseMes
   for (let i = 0; i < len; i++) {
     bytes[i] = compressedData.charCodeAt(i);
   }
-  let binData = fflate.unzlibSync(bytes)
+  let binData = inflateSync(bytes)
   let request = decode(binData) as RPCRequestMessage
 
   const contentParam = request.content;
@@ -34,7 +34,7 @@ export function decodeResponseURLParams(params: URLSearchParams): RPCResponseMes
 export function encodeRequestURLParams(request: RPCRequestMessage) {
   const urlParams = new URLSearchParams();
   let ret = encode(request);
-  ret = fflate.zlibSync(ret)
+  ret = deflateSync(ret)
   let dataStr = btoa(String.fromCharCode(...ret))
   urlParams.append("q", dataStr)
   return urlParams.toString();

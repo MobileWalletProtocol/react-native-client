@@ -2045,6 +2045,7 @@ __metadata:
     "@babel/plugin-transform-react-jsx": "npm:^7.22.5"
     "@babel/preset-env": "npm:^7.22.9"
     "@babel/preset-typescript": "npm:^7.22.5"
+    "@msgpack/msgpack": "npm:^3.0.0-beta2"
     "@noble/ciphers": "npm:^0.5.3"
     "@noble/curves": "npm:^1.4.2"
     "@noble/hashes": "npm:^1.4.0"
@@ -2069,6 +2070,7 @@ __metadata:
     eslint-plugin-unused-imports: "npm:^3.0.0"
     eventemitter3: "npm:^5.0.1"
     expo-web-browser: "npm:^13.0.3"
+    fflate: "npm:^0.8.2"
     jest: "npm:^27.5.1"
     jest-chrome: "npm:^0.7.2"
     jest-websocket-mock: "npm:^2.4.0"
@@ -7903,9 +7905,6 @@ __metadata:
 "root-workspace-0b6124@workspace:.":
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
-  dependencies:
-    "@msgpack/msgpack": "npm:^3.0.0-beta2"
-    fflate: "npm:^0.8.2"
   languageName: unknown
   linkType: soft
 

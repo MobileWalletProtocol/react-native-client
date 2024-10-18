@@ -55,7 +55,7 @@ describe('Communicator', () => {
       WebBasedWalletCommunicator.postRequestAndWaitForResponse(mockRequest, mockUrl);
 
       expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
-        'https://coinbase.com/?id=%22123%22&sender=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22&content=%7B%22encrypted%22%3A%7B%22iv%22%3A%224655c5420d61ee8c4db7863f%22%2C%22cipherText%22%3A%2283d55c4bb8aadc5c31de49bb259c41f0595c905ce13662fd10f8428494f5c4e2af32b8c882f0e1768ca83b9b25b94766573b2903282d40f5046f91eb49b773ca0487c38a20facba93b1202f4f65e8d68a325e02ea3f2c26d9356e75d108a70b2b87427413e93f9826dd6686418a30f92e318a9e8dbcd334c4e9a72bf96ca937bb0f6243127db7cf85a4144a057ad7cd8fd5ef5e756b883035db758%22%7D%7D',
+        'https://coinbase.com/?q=eJxrW5SZstjQyHhVcUp2WGpRcWZ%2B3lJDPQM9g9XJiTk5SYnJ2aFFOVsySkoKiq309WFiesn5ucuT8%2FNKUvNKGlem5iUXVRaUpKY0LcosO8LjFnrUiTfxXY%2Fv9jb7VcmZBRmpRSGpFSVHZjdfjfHesepOjOE9z92qcxw%2FRMZMiHlolvRX4IdTy5SvRx6tN9pxounDw7KeFdazVXe6p4VbazJr6Dp8Zcmf%2BNpze%2FEplvbDXQq%2FTq%2B0FmL68i2uN2Ox6gO9xZ8O5U4Oex4r0FWwaUeJuqPd5J9NudcyUiQW8096LLHyxe2zxj5%2Bs4r2Tzs1uXrDNxVD9ds1P6IcXRaEr6258Tfu6%2FOwHc3MsdsjlhWn5qWkFoFCYmVJZm5qcUlibsH1%2F%2BWmUxgSf84oBQCL4oxY',
         {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
         }
@@ -71,7 +71,7 @@ describe('Communicator', () => {
       WebBasedWalletCommunicator.postRequestAndWaitForResponse(mockRequest, mockUrl);
 
       expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
-        'https://coinbase.com/?id=%22123%22&sender=%22123%22&sdkVersion=%221.0.0%22&callbackUrl=%22https%3A%2F%2Fcallback.com%22&timestamp=%222022-02-01T20%3A30%3A45.500Z%22&content=%7B%22encrypted%22%3A%7B%22iv%22%3A%224655c5420d61ee8c4db7863f%22%2C%22cipherText%22%3A%2283d55c4bb8aadc5c31de49bb259c41f0595c905ce13662fd10f8428494f5c4e2af32b8c882f0e1768ca83b9b25b94766573b2903282d40f5046f91eb49b773ca0487c38a20facba93b1202f4f65e8d68a325e02ea3f2c26d9356e75d108a70b2b87427413e93f9826dd6686418a30f92e318a9e8dbcd334c4e9a72bf96ca937bb0f6243127db7cf85a4144a057ad7cd8fd5ef5e756b883035db758%22%7D%7D',
+        'https://coinbase.com/?q=eJxrW5SZstjQyHhVcUp2WGpRcWZ%2B3lJDPQM9g9XJiTk5SYnJ2aFFOVsySkoKiq309WFiesn5ucuT8%2FNKUvNKGlem5iUXVRaUpKY0LcosO8LjFnrUiTfxXY%2Fv9jb7VcmZBRmpRSGpFSVHZjdfjfHesepOjOE9z92qcxw%2FRMZMiHlolvRX4IdTy5SvRx6tN9pxounDw7KeFdazVXe6p4VbazJr6Dp8Zcmf%2BNpze%2FEplvbDXQq%2FTq%2B0FmL68i2uN2Ox6gO9xZ8O5U4Oex4r0FWwaUeJuqPd5J9NudcyUiQW8096LLHyxe2zxj5%2Bs4r2Tzs1uXrDNxVD9ds1P6IcXRaEr6258Tfu6%2FOwHc3MsdsjlhWn5qWkFoFCYmVJZm5qcUlibsH1%2F%2BWmUxgSf84oBQCL4oxY',
         {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
         }

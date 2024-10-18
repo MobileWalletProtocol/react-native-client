@@ -16,6 +16,8 @@ class WebBasedWalletCommunicatorClass {
       const requestUrl = new URL(walletScheme);
       requestUrl.search = encodeRequestURLParams(request);
 
+      console.log('Request URL:', requestUrl.toString());
+
       // 2. save response
       this.responseHandlers.set(request.id, resolve);
 

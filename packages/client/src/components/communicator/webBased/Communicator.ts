@@ -43,9 +43,18 @@ class WebBasedWalletCommunicatorClass {
 
     const handler = this.responseHandlers.get(response.requestId);
     if (handler) {
-      handler(response);
-      this.responseHandlers.delete(response.requestId);
-      WebBrowser.dismissBrowser();
+      const dismissResult = WebBrowser.dismissBrowser();
+      if (dismissResult && typeof dismissResult.then === 'function') {
+        // If dismissBrowser returns a promise, handle it asynchronously
+        dismissResult.then(() => {
+            handler(response);
+            this.responseHandlers.delete(response.requestId);
+        });
+      } else {
+        // If dismissBrowser is undefined or doesn't return a promise (Android case), handle synchronously
+        handler(response);
+        this.responseHandlers.delete(response.requestId);
+      }
       return true;
     }
     return false;

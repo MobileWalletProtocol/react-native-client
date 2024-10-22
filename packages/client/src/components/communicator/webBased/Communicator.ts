@@ -43,7 +43,7 @@ class WebBasedWalletCommunicatorClass {
 
     const handler = this.responseHandlers.get(response.requestId);
     if (handler) {
-      // dismissBrowser only returns a promise on iOS for when Expo SDK is >= 43
+      // dismissBrowser only returns a promise on iOS for when Expo SDK is >= 52
       const dismissResult = WebBrowser.dismissBrowser() as Promise<unknown> | void;
       if (dismissResult && typeof dismissResult.then === 'function') {
         // If dismissBrowser returns a promise, handle it asynchronously

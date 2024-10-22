@@ -43,12 +43,13 @@ class WebBasedWalletCommunicatorClass {
 
     const handler = this.responseHandlers.get(response.requestId);
     if (handler) {
-      const dismissResult = WebBrowser.dismissBrowser();
+      // dismissBrowser only returns a promise on iOS for when Expo SDK is >= 52
+      const dismissResult = WebBrowser.dismissBrowser() as Promise<unknown> | void;
       if (dismissResult && typeof dismissResult.then === 'function') {
         // If dismissBrowser returns a promise, handle it asynchronously
         dismissResult.then(() => {
-            handler(response);
-            this.responseHandlers.delete(response.requestId);
+          handler(response);
+          this.responseHandlers.delete(response.requestId);
         });
       } else {
         // If dismissBrowser is undefined or doesn't return a promise (Android case), handle synchronously

@@ -2069,6 +2069,7 @@ __metadata:
     eslint-plugin-unused-imports: "npm:^3.0.0"
     eventemitter3: "npm:^5.0.1"
     expo-web-browser: "npm:^13.0.3"
+    fflate: "npm:^0.8.2"
     jest: "npm:^27.5.1"
     jest-chrome: "npm:^0.7.2"
     jest-websocket-mock: "npm:^2.4.0"
@@ -4620,6 +4621,13 @@ __metadata:
   dependencies:
     bser: "npm:2.1.1"
   checksum: 10c0/feae89ac148adb8f6ae8ccd87632e62b13563e6fb114cacb5265c51f585b17e2e268084519fb2edd133872f1d47a18e6bfd7e5e08625c0d41b93149694187581
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.8.2":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 10c0/03448d630c0a583abea594835a9fdb2aaf7d67787055a761515bf4ed862913cfd693b4c4ffd5c3f3b355a70cf1e19033e9ae5aedcca103188aaff91b8bd6e293
   languageName: node
   linkType: hard
 

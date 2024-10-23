@@ -2,6 +2,7 @@ import { gcm } from '@noble/ciphers/aes';
 import { randomBytes } from '@noble/ciphers/webcrypto';
 import { secp256r1 } from '@noble/curves/p256';
 import { Buffer } from 'buffer';
+import { unzlibSync, zlibSync } from 'fflate';
 
 import { CryptoKey, CryptoKeyPair } from './types';
 import { EncryptedData, RPCRequest, RPCResponse } from ':core/message';
@@ -61,7 +62,8 @@ export async function encrypt(sharedSecret: CryptoKey, plainText: string): Promi
   const iv = randomBytes(12);
   const stream = gcm(sharedSecret._key, iv);
   const plainTextBytes = new Uint8Array(Buffer.from(plainText, 'utf8'));
-  const cipherText = stream.encrypt(plainTextBytes);
+  const compressedBytes = zlibSync(plainTextBytes);
+  const cipherText = stream.encrypt(compressedBytes);
 
   return {
     iv,
@@ -74,8 +76,8 @@ export async function decrypt(
   { iv, cipherText }: EncryptedData
 ): Promise<string> {
   const stream = gcm(new Uint8Array(sharedSecret._key), new Uint8Array(iv));
-  const plainTextBytes = stream.decrypt(new Uint8Array(cipherText));
-
+  const compressedBytes = stream.decrypt(new Uint8Array(cipherText));
+  const plainTextBytes = unzlibSync(compressedBytes);
   return Buffer.from(plainTextBytes).toString('utf8');
 }
 

@@ -25,7 +25,7 @@
   "scripts": {
     "test": "jest",
     "test:coverage": "yarn test:unit && open coverage/lcov-report/index.html",
-    "prebuild": "rm -rf ./build && node -p \"'export const LIB_VERSION = \\'' + require('./package.json').version + '\\';'\" > src/version.ts",
+    "prebuild": "rm -rf ./dist && node -p \"'export const LIB_VERSION = \\'' + require('./package.json').version + '\\';'\" > src/version.ts",
     "build": "tsc -p ./tsconfig.build.json && tsc-alias",
     "dev": "tsc --watch & nodemon --watch dist --delay 1 --exec tsc-alias",
     "typecheck": "tsc --noEmit",
@@ -35,7 +35,8 @@
     "@noble/ciphers": "^0.5.3",
     "@noble/curves": "^1.4.2",
     "@noble/hashes": "^1.4.0",
-    "eventemitter3": "^5.0.1"
+    "eventemitter3": "^5.0.1",
+    "fflate": "^0.8.2"
   },
   "peerDependencies": {
     "@react-native-async-storage/async-storage": "*",

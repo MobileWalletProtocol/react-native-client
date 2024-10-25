@@ -1,3 +1,5 @@
+import { unzlibSync, zlibSync } from 'fflate';
+
 import {
   decrypt,
   decryptContent,
@@ -13,10 +15,12 @@ import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util';
 
 async function webEncrypt(sharedSecret: CryptoKey, plainText: string): Promise<EncryptedData> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plainTextBytes = new TextEncoder().encode(plainText);
+  const compressedBytes = zlibSync(plainTextBytes);
   const cipherText = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     sharedSecret,
-    new TextEncoder().encode(plainText)
+    compressedBytes
   );
 
   return { iv: new Uint8Array(iv), cipherText: new Uint8Array(cipherText) };
@@ -26,9 +30,13 @@ async function webDecrypt(
   sharedSecret: CryptoKey,
   { iv, cipherText }: EncryptedData
 ): Promise<string> {
-  const plainText = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, sharedSecret, cipherText);
-
-  return new TextDecoder().decode(plainText);
+  const compressedBytes = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv },
+    sharedSecret,
+    cipherText
+  );
+  const decompressedBytes = unzlibSync(Buffer.from(compressedBytes));
+  return new TextDecoder().decode(decompressedBytes);
 }
 
 function getFormat(keyType: 'public' | 'private') {

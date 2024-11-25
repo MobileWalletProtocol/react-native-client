@@ -101,7 +101,8 @@ export class MWPClient {
     });
     const response: RPCResponseMessage = await Communicator.postRequestToWallet(
       handshakeMessage,
-      this.wallet
+      this.wallet,
+      this.metadata.appCustomScheme
     );
 
     // store peer's public key

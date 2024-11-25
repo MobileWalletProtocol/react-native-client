@@ -11,12 +11,16 @@ import { Wallet } from ':core/wallet';
  */
 export async function postRequestToWallet(
   request: RPCRequestMessage,
-  wallet: Wallet
+  wallet: Wallet,
+  appCustomScheme?: string
 ): Promise<RPCResponseMessage> {
   const { type, scheme } = wallet;
-
   if (type === 'webBased') {
-    return WebBasedWalletCommunicator.postRequestAndWaitForResponse(request, scheme);
+    return WebBasedWalletCommunicator.postRequestAndWaitForResponse(
+      request,
+      scheme,
+      appCustomScheme
+    );
   }
 
   if (type === 'native') {

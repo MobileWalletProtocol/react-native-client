@@ -9,7 +9,8 @@ class WebBasedWalletCommunicatorClass {
 
   postRequestAndWaitForResponse = (
     request: RPCRequestMessage,
-    walletScheme: string
+    walletScheme: string,
+    appCustomScheme?: string
   ): Promise<RPCResponseMessage> => {
     return new Promise((resolve, reject) => {
       // 1. generate request URL
@@ -20,14 +21,18 @@ class WebBasedWalletCommunicatorClass {
       this.responseHandlers.set(request.id, resolve);
 
       // 3. send request via native module
-      WebBrowser.openBrowserAsync(requestUrl.toString(), {
-        presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+      WebBrowser.openAuthSessionAsync(requestUrl.toString(), appCustomScheme, {
+        preferEphemeralSession: false,
       })
         .then((result) => {
+          console.log('customlogs: result', result);
           if (result.type === 'cancel') {
             // iOS only: user cancelled the request
             reject(standardErrors.provider.userRejectedRequest());
             this.disconnect();
+          }
+          if (result.type === 'success') {
+            this.handleResponse(result.url);
           }
         })
         .catch(() => {

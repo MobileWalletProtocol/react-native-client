@@ -30,7 +30,7 @@ describe('EIP1193Provider', () => {
     (MWPClient.createInstance as jest.Mock).mockResolvedValue(mockClient);
 
     provider = new EIP1193Provider({
-      metadata: { appName: 'Test App', appDeeplinkUrl: 'test://deeplink' },
+      metadata: { appName: 'Test App', appCustomScheme: 'test://deeplink' },
       wallet: mockWallet,
     });
     console.warn = jest.fn();

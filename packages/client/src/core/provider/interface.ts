@@ -53,19 +53,10 @@ export interface AppMetadata {
    */
   appChainIds?: number[];
   /**
-   * @param appDeeplinkUrl
-   * @type string
-   * @note HTTPS URL is required for production
-   * @description Universal Link url on iOS or App Link url on Android to establish app's identity
-   * @example 'https://example.com'
-   */
-  appDeeplinkUrl: string;
-  /**
    * @param appCustomScheme
    * @type {string}
-   * @note Optional, but will be required in next minor version
-   * @description Custom URL scheme used for establishing less disruptive communication channel with wallet
+   * @description Custom URL scheme for returning to this app after wallet interaction
    * @example 'myapp://'
    */
-  appCustomScheme?: string;
+  appCustomScheme: string;
 }

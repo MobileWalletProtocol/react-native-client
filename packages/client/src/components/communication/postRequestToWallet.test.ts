@@ -1,5 +1,4 @@
 import { postRequestToWallet } from './postRequestToWallet';
-import { WebBasedWalletCommunicator } from './webBased/Communicator';
 import { RPCRequestMessage, RPCResponseMessage } from ':core/message';
 import { Wallet } from ':core/wallet';
 

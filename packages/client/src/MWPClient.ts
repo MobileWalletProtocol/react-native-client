@@ -16,7 +16,7 @@ const ACCOUNTS_KEY = 'accounts';
 const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
 const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
 const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import * as Communicator from './components/communicator';
+import * as Communicator from './components/communication';
 import { LIB_VERSION } from './version';
 import {
   appendMWPResponsePath,
@@ -48,10 +48,7 @@ export class MWPClient {
     this.metadata = {
       ...metadata,
       appName: metadata.appName || 'Dapp',
-      appDeeplinkUrl: appendMWPResponsePath(metadata.appDeeplinkUrl),
-      appCustomScheme: metadata.appCustomScheme
-        ? appendMWPResponsePath(metadata.appCustomScheme)
-        : undefined,
+      appCustomScheme: appendMWPResponsePath(metadata.appCustomScheme),
     };
 
     this.wallet = wallet;
@@ -101,6 +98,7 @@ export class MWPClient {
     });
     const response: RPCResponseMessage = await Communicator.postRequestToWallet(
       handshakeMessage,
+      this.metadata.appCustomScheme,
       this.wallet
     );
 
@@ -225,7 +223,7 @@ export class MWPClient {
     );
     const message = await this.createRequestMessage({ encrypted });
 
-    return Communicator.postRequestToWallet(message, this.wallet);
+    return Communicator.postRequestToWallet(message, this.metadata.appCustomScheme, this.wallet);
   }
 
   private async createRequestMessage(
@@ -238,8 +236,7 @@ export class MWPClient {
       content,
       sdkVersion: LIB_VERSION,
       timestamp: new Date(),
-      callbackUrl: this.metadata.appDeeplinkUrl,
-      customScheme: this.metadata.appCustomScheme,
+      callbackUrl: this.metadata.appCustomScheme,
     };
   }
 

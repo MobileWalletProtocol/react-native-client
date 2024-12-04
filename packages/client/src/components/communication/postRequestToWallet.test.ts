@@ -25,7 +25,7 @@ describe('postRequestToWallet', () => {
     content: {
       handshake: {
         method: 'eth_requestAccounts',
-        params: { name: 'test' },
+        params: { appName: 'test' },
       },
     },
     callbackUrl: 'https://example.com',

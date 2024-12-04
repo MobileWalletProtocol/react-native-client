@@ -16,7 +16,7 @@ const ACCOUNTS_KEY = 'accounts';
 const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
 const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
 const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import * as Communicator from './components/communication/postRequestToWallet';
+import { postRequestToWallet } from './components/communication/postRequestToWallet';
 import { LIB_VERSION } from './version';
 import {
   appendMWPResponsePath,
@@ -96,7 +96,7 @@ export class MWPClient {
         },
       },
     });
-    const response: RPCResponseMessage = await Communicator.postRequestToWallet(
+    const response: RPCResponseMessage = await postRequestToWallet(
       handshakeMessage,
       this.metadata.customScheme,
       this.wallet
@@ -223,7 +223,7 @@ export class MWPClient {
     );
     const message = await this.createRequestMessage({ encrypted });
 
-    return Communicator.postRequestToWallet(message, this.metadata.customScheme, this.wallet);
+    return postRequestToWallet(message, this.metadata.customScheme, this.wallet);
   }
 
   private async createRequestMessage(

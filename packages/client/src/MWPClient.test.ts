@@ -1,4 +1,4 @@
-import { postRequestToWallet } from './components/communication';
+import { postRequestToWallet } from './components/communication/postRequestToWallet';
 import { KeyManager } from './components/key/KeyManager';
 import { MWPClient } from './MWPClient';
 import {
@@ -24,7 +24,7 @@ jest.mock(':core/util/utils', () => {
   };
 });
 
-jest.mock('./components/communication');
+jest.mock('./components/communication/postRequestToWallet');
 
 jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn(),
@@ -68,9 +68,9 @@ describe('MWPClient', () => {
 
   beforeEach(async () => {
     mockMetadata = {
-      appName: 'test',
-      appChainIds: [1],
-      appCustomScheme: 'myapp://',
+      name: 'test',
+      chainIds: [1],
+      customScheme: 'myapp://',
     };
 
     (postRequestToWallet as jest.Mock).mockResolvedValue(mockSuccessResponse);
@@ -99,9 +99,9 @@ describe('MWPClient', () => {
     expect(client['chain']).toEqual({ id: 1 });
     expect(client['accounts']).toEqual([]);
     expect(client['metadata']).toEqual({
-      appName: 'test',
-      appChainIds: [1],
-      appCustomScheme: `myapp:///${MWP_RESPONSE_PATH}`,
+      name: 'test',
+      chainIds: [1],
+      customScheme: `myapp:///${MWP_RESPONSE_PATH}`,
     });
   });
 
@@ -185,7 +185,7 @@ describe('MWPClient', () => {
           sender: '0xPublicKey',
           content: { encrypted: encryptedData },
         }),
-        `${mockMetadata.appCustomScheme}/${MWP_RESPONSE_PATH}`,
+        `${mockMetadata.customScheme}/${MWP_RESPONSE_PATH}`,
         mockWallet
       );
       expect(result).toEqual('0xSignature');
@@ -225,7 +225,7 @@ describe('MWPClient', () => {
           sender: '0xPublicKey',
           content: { encrypted: encryptedData },
         }),
-        `${mockMetadata.appCustomScheme}/${MWP_RESPONSE_PATH}`,
+        `${mockMetadata.customScheme}/${MWP_RESPONSE_PATH}`,
         mockWallet
       );
     });

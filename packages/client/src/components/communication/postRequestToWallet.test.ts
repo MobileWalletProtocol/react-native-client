@@ -25,7 +25,7 @@ describe('postRequestToWallet', () => {
     content: {
       handshake: {
         method: 'eth_requestAccounts',
-        params: { appName: 'test' },
+        params: { name: 'test' },
       },
     },
     callbackUrl: 'https://example.com',
@@ -53,14 +53,14 @@ describe('postRequestToWallet', () => {
   });
 
   it('should successfully post request to a web-based wallet', async () => {
-    const webBasedWallet: Wallet = { type: 'webBased', scheme: mockWalletScheme } as Wallet;
+    const webWallet: Wallet = { type: 'web', scheme: mockWalletScheme } as Wallet;
     (WebBrowser.openAuthSessionAsync as jest.Mock).mockResolvedValue({
       type: 'success',
       url: 'https://example.com/response',
     });
     (decodeResponseURLParams as jest.Mock).mockResolvedValue(mockResponse);
 
-    const result = await postRequestToWallet(mockRequest, mockAppCustomScheme, webBasedWallet);
+    const result = await postRequestToWallet(mockRequest, mockAppCustomScheme, webWallet);
 
     expect(WebBrowser.openAuthSessionAsync).toHaveBeenCalledWith(
       requestUrl.toString(),
@@ -73,14 +73,14 @@ describe('postRequestToWallet', () => {
   });
 
   it('should throw an error if the user cancels the request', async () => {
-    const webBasedWallet: Wallet = { type: 'webBased', scheme: mockWalletScheme } as Wallet;
+    const webWallet: Wallet = { type: 'web', scheme: mockWalletScheme } as Wallet;
     (WebBrowser.openAuthSessionAsync as jest.Mock).mockResolvedValue({
       type: 'cancel',
     });
 
-    await expect(
-      postRequestToWallet(mockRequest, mockAppCustomScheme, webBasedWallet)
-    ).rejects.toThrow('User rejected the request');
+    await expect(postRequestToWallet(mockRequest, mockAppCustomScheme, webWallet)).rejects.toThrow(
+      'User rejected the request'
+    );
   });
 
   it('should throw an error for native wallet type', async () => {
@@ -103,12 +103,12 @@ describe('postRequestToWallet', () => {
   });
 
   it('should pass through any errors from WebBrowser', async () => {
-    const webBasedWallet: Wallet = { type: 'webBased', scheme: mockWalletScheme } as Wallet;
+    const webWallet: Wallet = { type: 'web', scheme: mockWalletScheme } as Wallet;
     const mockError = new Error('Communication error');
     (WebBrowser.openAuthSessionAsync as jest.Mock).mockRejectedValue(mockError);
 
-    await expect(
-      postRequestToWallet(mockRequest, mockAppCustomScheme, webBasedWallet)
-    ).rejects.toThrow('User rejected the request');
+    await expect(postRequestToWallet(mockRequest, mockAppCustomScheme, webWallet)).rejects.toThrow(
+      'User rejected the request'
+    );
   });
 });

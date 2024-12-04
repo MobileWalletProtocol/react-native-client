@@ -20,7 +20,7 @@ export async function postRequestToWallet(
 ): Promise<RPCResponseMessage> {
   const { type, scheme } = wallet;
 
-  if (type === 'webBased') {
+  if (type === 'web') {
     return new Promise((resolve, reject) => {
       // 1. generate request URL
       const requestUrl = new URL(scheme);

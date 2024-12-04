@@ -35,28 +35,28 @@ export type ProviderEventCallback = ProviderInterface['emit'];
 
 export interface AppMetadata {
   /**
-   * @param appName
+   * @param name
    * @type string
    * @description Application name
    */
-  appName: string;
+  name: string;
   /**
-   * @param appLogoUrl
+   * @param logoUrl
    * @type {string}
    * @description Application logo image URL
    */
-  appLogoUrl?: string;
+  logoUrl?: string;
   /**
-   * @param appChainIds
+   * @param chainIds
    * @type {number[]}
    * @description Array of chainIds in number your dapp supports
    */
-  appChainIds?: number[];
+  chainIds?: number[];
   /**
-   * @param appCustomScheme
+   * @param customScheme
    * @type {string}
    * @description Custom URL scheme for returning to this app after wallet interaction
    * @example 'myapp://'
    */
-  appCustomScheme: string;
+  customScheme: string;
 }

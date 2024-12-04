@@ -16,7 +16,7 @@ const ACCOUNTS_KEY = 'accounts';
 const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
 const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
 const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import * as Communicator from './components/communicator';
+import { postRequestToWallet } from './components/communication/postRequestToWallet';
 import { LIB_VERSION } from './version';
 import {
   appendMWPResponsePath,
@@ -47,11 +47,8 @@ export class MWPClient {
   private constructor({ metadata, wallet }: MWPClientOptions) {
     this.metadata = {
       ...metadata,
-      appName: metadata.appName || 'Dapp',
-      appDeeplinkUrl: appendMWPResponsePath(metadata.appDeeplinkUrl),
-      appCustomScheme: metadata.appCustomScheme
-        ? appendMWPResponsePath(metadata.appCustomScheme)
-        : undefined,
+      name: metadata.name || 'Dapp',
+      customScheme: appendMWPResponsePath(metadata.customScheme),
     };
 
     this.wallet = wallet;
@@ -61,7 +58,7 @@ export class MWPClient {
     // default values
     this.accounts = [];
     this.chain = {
-      id: metadata.appChainIds?.[0] ?? 1,
+      id: metadata.chainIds?.[0] ?? 1,
     };
 
     this.handshake = this.handshake.bind(this);
@@ -94,13 +91,14 @@ export class MWPClient {
       handshake: {
         method: 'eth_requestAccounts',
         params: {
-          appName: this.metadata.appName,
-          appLogoUrl: this.metadata.appLogoUrl,
+          appName: this.metadata.name,
+          appLogoUrl: this.metadata.logoUrl,
         },
       },
     });
-    const response: RPCResponseMessage = await Communicator.postRequestToWallet(
+    const response: RPCResponseMessage = await postRequestToWallet(
       handshakeMessage,
+      this.metadata.customScheme,
       this.wallet
     );
 
@@ -179,7 +177,7 @@ export class MWPClient {
     await this.keyManager.clear();
     this.accounts = [];
     this.chain = {
-      id: this.metadata.appChainIds?.[0] ?? 1,
+      id: this.metadata.chainIds?.[0] ?? 1,
     };
   }
 
@@ -225,7 +223,7 @@ export class MWPClient {
     );
     const message = await this.createRequestMessage({ encrypted });
 
-    return Communicator.postRequestToWallet(message, this.wallet);
+    return postRequestToWallet(message, this.metadata.customScheme, this.wallet);
   }
 
   private async createRequestMessage(
@@ -238,8 +236,7 @@ export class MWPClient {
       content,
       sdkVersion: LIB_VERSION,
       timestamp: new Date(),
-      callbackUrl: this.metadata.appDeeplinkUrl,
-      customScheme: this.metadata.appCustomScheme,
+      callbackUrl: this.metadata.customScheme,
     };
   }
 

@@ -1,5 +1,4 @@
-import { WebBasedWalletCommunicator } from 'src/components/communicator/webBased/Communicator';
-
+import { postRequestToWallet } from './components/communication/postRequestToWallet';
 import { KeyManager } from './components/key/KeyManager';
 import { MWPClient } from './MWPClient';
 import {
@@ -25,11 +24,10 @@ jest.mock(':core/util/utils', () => {
   };
 });
 
+jest.mock('./components/communication/postRequestToWallet');
+
 jest.mock('expo-web-browser', () => ({
-  openBrowserAsync: jest.fn(),
-  WebBrowserPresentationStyle: {
-    FORM_SHEET: 'FORM_SHEET',
-  },
+  openAuthSessionAsync: jest.fn(),
   dismissBrowser: jest.fn(),
 }));
 
@@ -70,15 +68,12 @@ describe('MWPClient', () => {
 
   beforeEach(async () => {
     mockMetadata = {
-      appName: 'test',
-      appChainIds: [1],
-      appDeeplinkUrl: 'https://example.com',
-      appCustomScheme: 'myapp://',
+      name: 'test',
+      chainIds: [1],
+      customScheme: 'myapp://',
     };
 
-    jest
-      .spyOn(WebBasedWalletCommunicator, 'postRequestAndWaitForResponse')
-      .mockResolvedValue(mockSuccessResponse);
+    (postRequestToWallet as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
     mockKeyManager = new KeyManager({
       wallet: mockWallet,
@@ -104,10 +99,9 @@ describe('MWPClient', () => {
     expect(client['chain']).toEqual({ id: 1 });
     expect(client['accounts']).toEqual([]);
     expect(client['metadata']).toEqual({
-      appName: 'test',
-      appChainIds: [1],
-      appDeeplinkUrl: `https://example.com/${MWP_RESPONSE_PATH}`,
-      appCustomScheme: `myapp:///${MWP_RESPONSE_PATH}`,
+      name: 'test',
+      chainIds: [1],
+      customScheme: `myapp:///${MWP_RESPONSE_PATH}`,
     });
   });
 
@@ -147,9 +141,7 @@ describe('MWPClient', () => {
         content: { failure: mockError },
         timestamp: new Date(),
       };
-      (WebBasedWalletCommunicator.postRequestAndWaitForResponse as jest.Mock).mockResolvedValue(
-        mockResponse
-      );
+      (postRequestToWallet as jest.Mock).mockResolvedValue(mockResponse);
 
       await expect(client.handshake()).rejects.toThrowError(mockError);
     });
@@ -188,12 +180,13 @@ describe('MWPClient', () => {
       const result = await client.request(mockRequest);
 
       expect(encryptContent).toHaveBeenCalled();
-      expect(WebBasedWalletCommunicator.postRequestAndWaitForResponse).toHaveBeenCalledWith(
+      expect(postRequestToWallet).toHaveBeenCalledWith(
         expect.objectContaining({
           sender: '0xPublicKey',
           content: { encrypted: encryptedData },
         }),
-        mockWallet.scheme
+        `${mockMetadata.customScheme}/${MWP_RESPONSE_PATH}`,
+        mockWallet
       );
       expect(result).toEqual('0xSignature');
     });
@@ -227,12 +220,13 @@ describe('MWPClient', () => {
 
       await client.request(mockRequest);
 
-      expect(WebBasedWalletCommunicator.postRequestAndWaitForResponse).toHaveBeenCalledWith(
+      expect(postRequestToWallet).toHaveBeenCalledWith(
         expect.objectContaining({
           sender: '0xPublicKey',
           content: { encrypted: encryptedData },
         }),
-        mockWallet.scheme
+        `${mockMetadata.customScheme}/${MWP_RESPONSE_PATH}`,
+        mockWallet
       );
     });
 

@@ -2,7 +2,6 @@
 import { MWPClient } from './MWPClient';
 export default MWPClient;
 
-export { handleResponse } from './components/communicator';
 export type { AppMetadata, ProviderInterface } from './core/provider/interface';
 export type { Wallet } from './core/wallet';
 export { Wallets } from './core/wallet';

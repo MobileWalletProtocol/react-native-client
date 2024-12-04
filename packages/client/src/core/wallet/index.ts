@@ -1,6 +1,6 @@
 export type Wallet =
   | {
-      type: 'webBased';
+      type: 'web';
       name: string;
       scheme: string;
       iconUrl?: string;
@@ -18,19 +18,9 @@ export type Wallet =
 
 export const Wallets = {
   CoinbaseSmartWallet: {
-    type: 'webBased',
+    type: 'web',
     name: 'Coinbase Smart Wallet',
     scheme: 'https://keys.coinbase.com/connect',
     iconUrl: 'https://wallet.coinbase.com/assets/images/favicon.ico',
-  },
-  CoinbaseWalletApp: {
-    type: 'native',
-    name: 'Coinbase Wallet App',
-    scheme: 'https://keys.coinbase.com/connect',
-    iconUrl: 'https://wallet.coinbase.com/assets/images/favicon.ico',
-    storeUrl: {
-      appStore: 'https://apps.apple.com/app/coinbase-wallet/id1278383455',
-      googlePlay: 'https://play.google.com/store/apps/details?id=org.toshi',
-    },
   },
 } as const;

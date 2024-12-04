@@ -35,37 +35,28 @@ export type ProviderEventCallback = ProviderInterface['emit'];
 
 export interface AppMetadata {
   /**
-   * @param appName
+   * @param name
    * @type string
    * @description Application name
    */
-  appName: string;
+  name: string;
   /**
-   * @param appLogoUrl
+   * @param logoUrl
    * @type {string}
    * @description Application logo image URL
    */
-  appLogoUrl?: string;
+  logoUrl?: string;
   /**
-   * @param appChainIds
+   * @param chainIds
    * @type {number[]}
    * @description Array of chainIds in number your dapp supports
    */
-  appChainIds?: number[];
+  chainIds?: number[];
   /**
-   * @param appDeeplinkUrl
-   * @type string
-   * @note HTTPS URL is required for production
-   * @description Universal Link url on iOS or App Link url on Android to establish app's identity
-   * @example 'https://example.com'
-   */
-  appDeeplinkUrl: string;
-  /**
-   * @param appCustomScheme
+   * @param customScheme
    * @type {string}
-   * @note Optional, but will be required in next minor version
-   * @description Custom URL scheme used for establishing less disruptive communication channel with wallet
+   * @description Custom URL scheme for returning to this app after wallet interaction
    * @example 'myapp://'
    */
-  appCustomScheme?: string;
+  customScheme: string;
 }

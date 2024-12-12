@@ -19,7 +19,7 @@ type WagmiWallet = Wallet & {
 };
 
 export type CreateConnectorParameters = {
-  metadata: Omit<AppMetadata, 'appChainIds'>;
+  metadata: Omit<AppMetadata, 'chainIds'>;
   wallet: WagmiWallet;
 };
 
@@ -32,7 +32,7 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
   let chainChanged: Connector['onChainChanged'] | undefined;
   let disconnect: Connector['onDisconnect'] | undefined;
 
-  const walletName = toCamelCase(parameters.metadata.appName);
+  const walletName = toCamelCase(parameters.metadata.name);
 
   return createConnector<Provider>((config) => ({
     id: walletName,
@@ -125,7 +125,7 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
         walletProvider = new EIP1193Provider({
           metadata: {
             ...parameters.metadata,
-            appChainIds: config.chains.map((x) => x.id),
+            chainIds: config.chains.map((x) => x.id),
           },
           wallet: parameters.wallet,
         });

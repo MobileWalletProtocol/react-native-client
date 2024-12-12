@@ -1,6 +1,6 @@
 {
   "name": "@mobile-wallet-protocol/client",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Client SDK for the Mobile Wallet Protocol",
   "keywords": [
     "react-native",

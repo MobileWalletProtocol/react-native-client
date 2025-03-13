@@ -4,9 +4,9 @@ import { secp256r1 } from '@noble/curves/p256';
 import { Buffer } from 'buffer';
 import { unzlibSync, zlibSync } from 'fflate';
 
-import { CryptoKey, CryptoKeyPair } from './types';
-import { EncryptedData, RPCRequest, RPCResponse } from ':core/message';
-import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util';
+import { CryptoKey, CryptoKeyPair } from './types.js';
+import { EncryptedData, RPCRequest, RPCResponse } from ':core/message/index.js';
+import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util.js';
 
 export async function generateKeyPair(): Promise<CryptoKeyPair> {
   const privateKey = secp256r1.utils.randomPrivateKey();

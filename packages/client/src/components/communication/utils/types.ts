@@ -1,4 +1,4 @@
-import { SerializedEthereumRpcError } from ':core/error';
+import { SerializedEthereumRpcError } from ':core/error/index.js';
 
 export type HashedContent =
   | {

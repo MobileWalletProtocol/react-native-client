@@ -1,18 +1,18 @@
 import * as WebBrowser from 'expo-web-browser';
 
-import { postRequestToWallet } from './postRequestToWallet';
-import { decodeResponseURLParams, encodeRequestURLParams } from './utils/encoding';
-import { RPCRequestMessage, RPCResponseMessage } from ':core/message';
-import { Wallet } from ':core/wallet';
+import { postRequestToWallet } from './postRequestToWallet.js';
+import { decodeResponseURLParams, encodeRequestURLParams } from './utils/encoding.js';
+import { RPCRequestMessage, RPCResponseMessage } from ':core/message/index.js';
+import { Wallet } from ':core/wallet/index.js';
 
-jest.mock('expo-web-browser', () => ({
-  openAuthSessionAsync: jest.fn(),
-  dismissBrowser: jest.fn(),
+vi.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: vi.fn(),
+  dismissBrowser: vi.fn(),
 }));
 
-jest.mock('./utils/encoding', () => ({
-  ...jest.requireActual('./utils/encoding'),
-  decodeResponseURLParams: jest.fn(),
+vi.mock('./utils/encoding', () => ({
+  decodeResponseURLParams: vi.fn(),
+  encodeRequestURLParams: vi.fn(),
 }));
 
 const mockAppCustomScheme = 'myapp://';
@@ -48,17 +48,18 @@ describe('postRequestToWallet', () => {
 
   beforeEach(() => {
     requestUrl = new URL(mockWalletScheme);
+    (encodeRequestURLParams as ReturnType<typeof vi.fn>).mockReturnValue('mocked-search-params');
     requestUrl.search = encodeRequestURLParams(mockRequest);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should successfully post request to a web-based wallet', async () => {
     const webWallet: Wallet = { type: 'web', scheme: mockWalletScheme } as Wallet;
-    (WebBrowser.openAuthSessionAsync as jest.Mock).mockResolvedValue({
+    (WebBrowser.openAuthSessionAsync as ReturnType<typeof vi.fn>).mockResolvedValue({
       type: 'success',
       url: 'https://example.com/response',
     });
-    (decodeResponseURLParams as jest.Mock).mockResolvedValue(mockResponse);
+    (decodeResponseURLParams as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
 
     const result = await postRequestToWallet(mockRequest, mockAppCustomScheme, webWallet);
 
@@ -74,7 +75,7 @@ describe('postRequestToWallet', () => {
 
   it('should throw an error if the user cancels the request', async () => {
     const webWallet: Wallet = { type: 'web', scheme: mockWalletScheme } as Wallet;
-    (WebBrowser.openAuthSessionAsync as jest.Mock).mockResolvedValue({
+    (WebBrowser.openAuthSessionAsync as ReturnType<typeof vi.fn>).mockResolvedValue({
       type: 'cancel',
     });
 
@@ -105,7 +106,7 @@ describe('postRequestToWallet', () => {
   it('should pass through any errors from WebBrowser', async () => {
     const webWallet: Wallet = { type: 'web', scheme: mockWalletScheme } as Wallet;
     const mockError = new Error('Communication error');
-    (WebBrowser.openAuthSessionAsync as jest.Mock).mockRejectedValue(mockError);
+    (WebBrowser.openAuthSessionAsync as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
 
     await expect(postRequestToWallet(mockRequest, mockAppCustomScheme, webWallet)).rejects.toThrow(
       'User rejected the request'

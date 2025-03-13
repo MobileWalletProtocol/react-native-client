@@ -9,9 +9,9 @@ import {
   exportKeyToHexString,
   generateKeyPair,
   importKeyFromHexString,
-} from './cipher';
-import { EncryptedData, RPCRequest, RPCResponse } from ':core/message';
-import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util';
+} from './cipher.js';
+import { EncryptedData, RPCRequest, RPCResponse } from ':core/message/index.js';
+import { hexStringToUint8Array, uint8ArrayToHex } from ':core/type/util.js';
 
 async function webEncrypt(sharedSecret: CryptoKey, plainText: string): Promise<EncryptedData> {
   const iv = crypto.getRandomValues(new Uint8Array(12));

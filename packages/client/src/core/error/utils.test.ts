@@ -1,7 +1,7 @@
-import { standardErrorCodes } from './constants';
-import { standardErrors } from './errors';
-import { isErrorResponse } from './serialize';
-import { getErrorCode, getMessageFromCode } from './utils';
+import { standardErrorCodes } from './constants.js';
+import { standardErrors } from './errors.js';
+import { isErrorResponse } from './serialize.js';
+import { getErrorCode, getMessageFromCode } from './utils.js';
 
 describe('errors', () => {
   test('getErrorCode', () => {

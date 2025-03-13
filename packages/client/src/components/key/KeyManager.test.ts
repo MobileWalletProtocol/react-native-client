@@ -1,6 +1,6 @@
-import { KeyManager } from './KeyManager';
-import { generateKeyPair } from ':core/cipher/cipher';
-import { Wallets } from ':core/wallet';
+import { KeyManager } from './KeyManager.js';
+import { generateKeyPair } from ':core/cipher/cipher.js';
+import { Wallets } from ':core/wallet/index.js';
 
 const mockWallet = Wallets.CoinbaseSmartWallet;
 

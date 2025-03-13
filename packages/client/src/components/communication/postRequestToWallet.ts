@@ -1,10 +1,10 @@
 import * as WebBrowser from 'expo-web-browser';
 
-import { decodeResponseURLParams } from './utils/encoding';
-import { encodeRequestURLParams } from './utils/encoding';
-import { standardErrors } from ':core/error';
-import { RPCRequestMessage, RPCResponseMessage } from ':core/message';
-import { Wallet } from ':core/wallet';
+import { decodeResponseURLParams } from './utils/encoding.js';
+import { encodeRequestURLParams } from './utils/encoding.js';
+import { standardErrors } from ':core/error/index.js';
+import { RPCRequestMessage, RPCResponseMessage } from ':core/message/index.js';
+import { Wallet } from ':core/wallet/index.js';
 
 /**
  * Posts a request to a wallet and waits for the response.

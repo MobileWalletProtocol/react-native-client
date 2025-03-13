@@ -1,3 +1,3 @@
-export { standardErrorCodes } from './constants';
-export { standardErrors } from './errors';
-export type { SerializedEthereumRpcError } from './utils';
+export { standardErrorCodes } from './constants.js';
+export { standardErrors } from './errors.js';
+export type { SerializedEthereumRpcError } from './utils.js';

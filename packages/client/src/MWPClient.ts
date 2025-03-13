@@ -1,29 +1,29 @@
-import { KeyManager } from './components/key/KeyManager';
+import { KeyManager } from './components/key/KeyManager.js';
 import {
   decryptContent,
   encryptContent,
   exportKeyToHexString,
   importKeyFromHexString,
-} from ':core/cipher/cipher';
-import { standardErrors } from ':core/error';
-import { RPCRequestMessage, RPCResponse, RPCResponseMessage } from ':core/message';
-import { AppMetadata, RequestArguments } from ':core/provider/interface';
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { AddressString } from ':core/type';
-import { ensureIntNumber, hexStringFromNumber } from ':core/type/util';
+} from ':core/cipher/cipher.js';
+import { standardErrors } from ':core/error/index.js';
+import { RPCRequestMessage, RPCResponse, RPCResponseMessage } from ':core/message/index.js';
+import { AppMetadata, RequestArguments } from ':core/provider/interface.js';
+import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage.js';
+import { AddressString } from ':core/type/index.js';
+import { ensureIntNumber, hexStringFromNumber } from ':core/type/util.js';
 
 const ACCOUNTS_KEY = 'accounts';
 const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
 const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
 const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import { postRequestToWallet } from './components/communication/postRequestToWallet';
-import { LIB_VERSION } from './version';
+import { postRequestToWallet } from './components/communication/postRequestToWallet.js';
+import { LIB_VERSION } from './version.js';
 import {
   appendMWPResponsePath,
   checkErrorForInvalidRequestArgs,
   fetchRPCRequest,
-} from ':core/util/utils';
-import { Wallet } from ':core/wallet';
+} from ':core/util/utils.js';
+import { Wallet } from ':core/wallet/index.js';
 
 type Chain = {
   id: number;

@@ -3,10 +3,10 @@ import {
   exportKeyToHexString,
   generateKeyPair,
   importKeyFromHexString,
-} from ':core/cipher/cipher';
-import { CryptoKey } from ':core/cipher/types';
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { Wallet } from ':core/wallet/';
+} from ':core/cipher/cipher.js';
+import { CryptoKey } from ':core/cipher/types.js';
+import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage.js';
+import { Wallet } from ':core/wallet/index.js';
 
 interface StorageItem {
   storageKey: string;

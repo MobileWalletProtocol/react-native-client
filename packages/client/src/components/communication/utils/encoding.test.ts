@@ -1,5 +1,5 @@
-import { decodeResponseURLParams, encodeRequestURLParams } from './encoding';
-import { MessageID, RPCRequestMessage } from ':core/message';
+import { decodeResponseURLParams, encodeRequestURLParams } from './encoding.js';
+import { MessageID, RPCRequestMessage } from ':core/message/index.js';
 
 describe('encoding', () => {
   it('should encode handshake URL params', () => {

@@ -1,6 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage_, { AsyncStorageStatic } from '@react-native-async-storage/async-storage';
 
-import { KeyValueStorage, Scope, ScopedStorage } from './types';
+import { KeyValueStorage, Scope, ScopedStorage } from './types.js';
+
+// AsyncStorage type not correctly inferred by compiler so we have to cast it manually
+const AsyncStorage = AsyncStorage_ as unknown as AsyncStorageStatic;
 
 export class ScopedAsyncStorage extends ScopedStorage implements KeyValueStorage {
   constructor(scope: Scope, module?: string) {

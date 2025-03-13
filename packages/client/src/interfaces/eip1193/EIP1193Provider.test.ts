@@ -1,43 +1,43 @@
-import { MWPClient } from '../../MWPClient';
-import { EIP1193Provider } from './EIP1193Provider';
-import { standardErrors } from ':core/error';
-import { serializeError } from ':core/error/serialize';
-import { Wallet, Wallets } from ':core/wallet';
+import { MWPClient } from '../../MWPClient.js';
+import { EIP1193Provider } from './EIP1193Provider.js';
+import { standardErrors } from ':core/error/index.js';
+import { serializeError } from ':core/error/serialize.js';
+import { Wallet, Wallets } from ':core/wallet/index.js';
 
-jest.mock('expo-web-browser', () => ({
-  openBrowserAsync: jest.fn(),
+vi.mock('expo-web-browser', () => ({
+  openBrowserAsync: vi.fn(),
   WebBrowserPresentationStyle: {
     FORM_SHEET: 'FORM_SHEET',
   },
-  dismissBrowser: jest.fn(),
+  dismissBrowser: vi.fn(),
 }));
 
-jest.mock('../../MWPClient');
-jest.mock(':core/wallet');
+vi.mock('../../MWPClient');
+vi.mock(':core/wallet');
 
 describe('EIP1193Provider', () => {
   let provider: EIP1193Provider;
-  let mockWallet: jest.Mocked<Wallet>;
-  let mockClient: jest.Mocked<MWPClient>;
+  let mockWallet: Wallet;
+  let mockClient: MWPClient;
 
   beforeEach(() => {
     mockWallet = Wallets.CoinbaseSmartWallet;
     mockClient = {
-      handshake: jest.fn(),
-      request: jest.fn(),
-      reset: jest.fn(),
-    } as unknown as jest.Mocked<MWPClient>;
-    (MWPClient.createInstance as jest.Mock).mockResolvedValue(mockClient);
+      handshake: vi.fn(),
+      request: vi.fn(),
+      reset: vi.fn(),
+    } as unknown as MWPClient;
+    (MWPClient.createInstance as ReturnType<typeof vi.fn>).mockResolvedValue(mockClient);
 
     provider = new EIP1193Provider({
       metadata: { name: 'Test App', customScheme: 'test://deeplink' },
       wallet: mockWallet,
     });
-    console.warn = jest.fn();
+    console.warn = vi.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('constructor initializes correctly', () => {
@@ -52,7 +52,7 @@ describe('EIP1193Provider', () => {
 
   test('request method handles errors', async () => {
     const mockError = standardErrors.provider.unauthorized();
-    mockClient.request.mockRejectedValue(mockError);
+    (mockClient.request as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
     await expect(provider.request({ method: 'eth_getBalance' })).rejects.toEqual(
       serializeError(mockError)
     );
@@ -60,13 +60,13 @@ describe('EIP1193Provider', () => {
   });
 
   test('enable method calls request with eth_requestAccounts', async () => {
-    const spy = jest.spyOn(provider, 'request');
+    const spy = vi.spyOn(provider, 'request');
     await provider.enable();
     expect(spy).toHaveBeenCalledWith({ method: 'eth_requestAccounts' });
   });
 
   test('disconnect method calls client.reset and emits disconnect event', async () => {
-    const spy = jest.spyOn(provider, 'emit');
+    const spy = vi.spyOn(provider, 'emit');
     await provider.disconnect();
     expect(mockClient.reset).toHaveBeenCalled();
     expect(spy).toHaveBeenCalledWith('disconnect', expect.any(Error));

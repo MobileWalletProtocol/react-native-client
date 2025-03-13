@@ -1,6 +1,6 @@
-import { LIB_VERSION } from '../../version';
-import { standardErrorCodes } from './constants';
-import { serialize } from './utils';
+import { LIB_VERSION } from '../../version.js';
+import { standardErrorCodes } from './constants.js';
+import { serialize } from './utils.js';
 
 /**
  * Serializes an error to a format that is compatible with the Ethereum JSON RPC error format.

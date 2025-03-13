@@ -1,45 +1,45 @@
-import { postRequestToWallet } from './components/communication/postRequestToWallet';
-import { KeyManager } from './components/key/KeyManager';
-import { MWPClient } from './MWPClient';
+import { postRequestToWallet } from './components/communication/postRequestToWallet.js';
+import { KeyManager } from './components/key/KeyManager.js';
+import { MWPClient } from './MWPClient.js';
 import {
   decryptContent,
   encryptContent,
   exportKeyToHexString,
   importKeyFromHexString,
-} from ':core/cipher/cipher';
-import { CryptoKey } from ':core/cipher/types';
-import { MWP_RESPONSE_PATH } from ':core/constants';
-import { standardErrors } from ':core/error';
-import { EncryptedData, RPCResponseMessage } from ':core/message';
-import { AppMetadata, RequestArguments } from ':core/provider/interface';
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { fetchRPCRequest } from ':core/util/utils';
-import { Wallets } from ':core/wallet';
+} from ':core/cipher/cipher.js';
+import { CryptoKey } from ':core/cipher/types.js';
+import { MWP_RESPONSE_PATH } from ':core/constants.js';
+import { standardErrors } from ':core/error/index.js';
+import { EncryptedData, RPCResponseMessage } from ':core/message/index.js';
+import { AppMetadata, RequestArguments } from ':core/provider/interface.js';
+import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage.js';
+import { fetchRPCRequest } from ':core/util/utils.js';
+import { Wallets } from ':core/wallet/index.js';
 
-jest.mock(':core/util/utils', () => {
-  const actual = jest.requireActual(':core/util/utils');
+vi.mock(':core/util/utils', async () => {
+  const actual = await vi.importActual(':core/util/utils');
   return {
     ...actual,
-    fetchRPCRequest: jest.fn(),
+    fetchRPCRequest: vi.fn(),
   };
 });
 
-jest.mock('./components/communication/postRequestToWallet');
+vi.mock('./components/communication/postRequestToWallet');
 
-jest.mock('expo-web-browser', () => ({
-  openAuthSessionAsync: jest.fn(),
-  dismissBrowser: jest.fn(),
+vi.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: vi.fn(),
+  dismissBrowser: vi.fn(),
 }));
 
-jest.mock('./components/key/KeyManager');
-const storageStoreSpy = jest.spyOn(ScopedAsyncStorage.prototype, 'storeObject');
-const storageClearSpy = jest.spyOn(ScopedAsyncStorage.prototype, 'clear');
+vi.mock('./components/key/KeyManager');
+const storageStoreSpy = vi.spyOn(ScopedAsyncStorage.prototype, 'storeObject');
+const storageClearSpy = vi.spyOn(ScopedAsyncStorage.prototype, 'clear');
 
-jest.mock(':core/cipher/cipher', () => ({
-  decryptContent: jest.fn(),
-  encryptContent: jest.fn(),
-  exportKeyToHexString: jest.fn(),
-  importKeyFromHexString: jest.fn(),
+vi.mock(':core/cipher/cipher', () => ({
+  decryptContent: vi.fn(),
+  encryptContent: vi.fn(),
+  exportKeyToHexString: vi.fn(),
+  importKeyFromHexString: vi.fn(),
 }));
 
 const mockCryptoKey = {} as CryptoKey;
@@ -64,7 +64,7 @@ const mockWallet = Wallets.CoinbaseSmartWallet;
 describe('MWPClient', () => {
   let client: MWPClient;
   let mockMetadata: AppMetadata;
-  let mockKeyManager: jest.Mocked<KeyManager>;
+  let mockKeyManager: ReturnType<typeof vi.mocked<KeyManager>>;
 
   beforeEach(async () => {
     mockMetadata = {
@@ -73,18 +73,18 @@ describe('MWPClient', () => {
       customScheme: 'myapp://',
     };
 
-    (postRequestToWallet as jest.Mock).mockResolvedValue(mockSuccessResponse);
+    (postRequestToWallet as ReturnType<typeof vi.fn>).mockResolvedValue(mockSuccessResponse);
 
     mockKeyManager = new KeyManager({
       wallet: mockWallet,
-    }) as jest.Mocked<KeyManager>;
-    (KeyManager as jest.Mock).mockImplementation(() => mockKeyManager);
+    }) as ReturnType<typeof vi.mocked<KeyManager>>;
+    (KeyManager as ReturnType<typeof vi.fn>).mockImplementation(() => mockKeyManager);
     storageStoreSpy.mockReset();
 
-    (importKeyFromHexString as jest.Mock).mockResolvedValue(mockCryptoKey);
-    (exportKeyToHexString as jest.Mock).mockResolvedValueOnce('0xPublicKey');
+    (importKeyFromHexString as ReturnType<typeof vi.fn>).mockResolvedValue(mockCryptoKey);
+    (exportKeyToHexString as ReturnType<typeof vi.fn>).mockResolvedValueOnce('0xPublicKey');
     mockKeyManager.getSharedSecret.mockResolvedValue(mockCryptoKey);
-    (encryptContent as jest.Mock).mockResolvedValueOnce(encryptedData);
+    (encryptContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce(encryptedData);
 
     client = await MWPClient.createInstance({
       metadata: mockMetadata,
@@ -106,8 +106,21 @@ describe('MWPClient', () => {
   });
 
   describe('handshake', () => {
+    it('should throw an error if failure in response.content', async () => {
+      const mockResponse: RPCResponseMessage = {
+        id: '1-2-3-4-5',
+        requestId: '1-2-3-4-5-6',
+        sender: '0xPublicKey',
+        content: { failure: mockError },
+        timestamp: new Date(),
+      };
+      (postRequestToWallet as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
+
+      await expect(client.handshake()).rejects.toThrowError(mockError);
+    });
+
     it('should perform a successful handshake', async () => {
-      (decryptContent as jest.Mock).mockResolvedValueOnce({
+      (decryptContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         result: {
           value: ['0xAddress'],
         },
@@ -130,26 +143,13 @@ describe('MWPClient', () => {
       expect(storageStoreSpy).toHaveBeenCalledWith('walletCapabilities', mockCapabilities);
       expect(storageStoreSpy).toHaveBeenCalledWith('accounts', ['0xAddress']);
 
-      expect(client.request({ method: 'eth_requestAccounts' })).resolves.toEqual(['0xAddress']);
-    });
-
-    it('should throw an error if failure in response.content', async () => {
-      const mockResponse: RPCResponseMessage = {
-        id: '1-2-3-4-5',
-        requestId: '1-2-3-4-5',
-        sender: '0xPublicKey',
-        content: { failure: mockError },
-        timestamp: new Date(),
-      };
-      (postRequestToWallet as jest.Mock).mockResolvedValue(mockResponse);
-
-      await expect(client.handshake()).rejects.toThrowError(mockError);
+      await expect(client.request({ method: 'eth_requestAccounts' })).resolves.toEqual(['0xAddress']);
     });
   });
 
   describe('request', () => {
     beforeAll(() => {
-      jest.spyOn(ScopedAsyncStorage.prototype, 'loadObject').mockImplementation(async (key) => {
+      vi.spyOn(ScopedAsyncStorage.prototype, 'loadObject').mockImplementation(async (key) => {
         switch (key) {
           case 'accounts':
             return ['0xAddress'];
@@ -162,7 +162,7 @@ describe('MWPClient', () => {
     });
 
     afterAll(() => {
-      jest.spyOn(ScopedAsyncStorage.prototype, 'loadObject').mockRestore();
+      vi.mocked(ScopedAsyncStorage.prototype.loadObject).mockRestore();
     });
 
     it('should perform a successful request', async () => {
@@ -171,7 +171,7 @@ describe('MWPClient', () => {
         params: ['0xMessage', '0xAddress'],
       };
 
-      (decryptContent as jest.Mock).mockResolvedValueOnce({
+      (decryptContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         result: {
           value: '0xSignature',
         },
@@ -212,7 +212,7 @@ describe('MWPClient', () => {
         params: [],
       };
 
-      (decryptContent as jest.Mock).mockResolvedValueOnce({
+      (decryptContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         result: {
           value: '0xSignature',
         },
@@ -252,7 +252,7 @@ describe('MWPClient', () => {
         params: ['0xMessage', '0xAddress'],
       };
 
-      (decryptContent as jest.Mock).mockResolvedValueOnce({
+      (decryptContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         result: {
           error: mockError,
         },
@@ -267,7 +267,7 @@ describe('MWPClient', () => {
         params: [{ chainId: '0x1' }],
       };
 
-      (decryptContent as jest.Mock).mockResolvedValueOnce({
+      (decryptContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         result: {
           value: null,
         },

@@ -1,7 +1,7 @@
-import { LIB_VERSION } from '../../version';
-import { MWP_RESPONSE_PATH } from ':core/constants';
-import { standardErrors } from ':core/error';
-import { RequestArguments } from ':core/provider/interface';
+import { LIB_VERSION } from '../../version.js';
+import { MWP_RESPONSE_PATH } from ':core/constants.js';
+import { standardErrors } from ':core/error/index.js';
+import { RequestArguments } from ':core/provider/interface.js';
 
 export async function fetchRPCRequest(request: RequestArguments, rpcUrl: string) {
   const requestBody = {

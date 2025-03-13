@@ -1,13 +1,13 @@
-import { MWPClient } from '../../MWPClient';
-import { standardErrorCodes, standardErrors } from ':core/error';
-import { serializeError } from ':core/error/serialize';
+import { MWPClient } from '../../MWPClient.js';
+import { standardErrorCodes, standardErrors } from ':core/error/index.js';
+import { serializeError } from ':core/error/serialize.js';
 import {
   AppMetadata,
   ProviderEventEmitter,
   ProviderInterface,
   RequestArguments,
-} from ':core/provider/interface';
-import { Wallet } from ':core/wallet';
+} from ':core/provider/interface.js';
+import { Wallet } from ':core/wallet/index.js';
 
 type EIP1193ProviderOptions = {
   metadata: AppMetadata;

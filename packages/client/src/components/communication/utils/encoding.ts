@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 
-import type { SerializedEthereumRpcError } from ':core/error';
-import type { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message';
+import type { SerializedEthereumRpcError } from ':core/error/index.js';
+import type { MessageID, RPCRequestMessage, RPCResponseMessage } from ':core/message/index.js';
 
 type EncodedResponseContent =
   | { failure: SerializedEthereumRpcError }

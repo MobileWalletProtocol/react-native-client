@@ -13,7 +13,7 @@ tsconfig.build.json
 babel.config.js
 release.sh
 
-# Jest
-jest.setup.ts
-jest.config.ts
+# Vitest
+vitest.config.ts
+vitest.setup.ts
 coverage/**

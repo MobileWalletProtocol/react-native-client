@@ -190,7 +190,7 @@ describe('util', () => {
       document.head.innerHTML = `
       <link rel="shortcut icon" sizes="16x16 24x24" href="/favicon.ico">
     `;
-      expect(getFavicon()).toEqual('http://localhost/favicon.ico');
+      expect(getFavicon()).toEqual('http://localhost:3000/favicon.ico');
     });
   });
 });

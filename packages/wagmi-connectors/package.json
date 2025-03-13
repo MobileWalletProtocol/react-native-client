@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
-    "test": "jest"
+    "test": "vitest"
   },
   "peerDependencies": {
     "@mobile-wallet-protocol/client": "*",
@@ -42,13 +42,11 @@
   },
   "devDependencies": {
     "@mobile-wallet-protocol/client": "workspace:*",
-    "@types/jest": "^29.5.12",
     "@wagmi/core": "^2.13.4",
-    "jest": "^29.7.0",
     "prettier": "^3.3.3",
-    "ts-jest": "^29.2.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.1.6",
-    "viem": "^2.19.4"
+    "viem": "^2.19.4",
+    "vitest": "^3.0.8"
   }
 }

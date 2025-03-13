@@ -12,5 +12,8 @@
       "**/*.test.*",
     ],
   },
+  "compilerOptions": {
+    "types": ["vitest/globals"]
+  }
 }
  

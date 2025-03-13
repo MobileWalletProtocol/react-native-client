@@ -4,36 +4,36 @@ import { standardErrors } from ':core/error';
 
 // @ts-expect-error-next-line
 const invalidArgsError = (args) =>
-  standardErrors.rpc.invalidRequest({
+  standardErrors.rpc.invalidParams({
     message: 'Expected a single, non-array, object argument.',
     data: args,
   });
 // @ts-expect-error-next-line
 const invalidMethodError = (args) =>
-  standardErrors.rpc.invalidRequest({
+  standardErrors.rpc.invalidParams({
     message: "'args.method' must be a non-empty string.",
     data: args,
   });
 // @ts-expect-error-next-line
 const invalidParamsError = (args) =>
-  standardErrors.rpc.invalidRequest({
+  standardErrors.rpc.invalidParams({
     message: "'args.params' must be an object or array if provided.",
     data: args,
   });
 
 const mockUUID = '123e4567-e89b-12d3-a456-426614174000';
-jest.spyOn(crypto, 'randomUUID').mockReturnValue(mockUUID);
+vi.spyOn(crypto, 'randomUUID').mockReturnValue(mockUUID);
 
 describe('Utils', () => {
   describe('fetchRPCRequest', () => {
     function mockFetchResponse(response: unknown) {
-      global.fetch = jest.fn().mockResolvedValue({
-        json: jest.fn().mockResolvedValue(response),
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue(response),
       });
     }
 
     it('should make a POST request with correct parameters', async () => {
-      const mockResponse = { json: jest.fn().mockResolvedValue({ result: '0x1' }) };
+      const mockResponse = { json: vi.fn().mockResolvedValue({ result: '0x1' }) };
       mockFetchResponse({ id: 1, result: mockResponse, error: null });
 
       const mockRpcUrl = 'https://example.com/rpc';

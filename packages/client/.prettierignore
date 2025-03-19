@@ -1,9 +1,0 @@
-package.json
-yarn.lock
-coverage/**
-**/coverage/**
-**/build
-**/dist
-**/node_modules
-**/*-css.ts
-**/*-svg.ts

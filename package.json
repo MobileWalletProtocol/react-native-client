@@ -3,8 +3,14 @@
     "author": "Coinbase, Inc.",
     "license": "Apache-2.0",
     "private": true,
+    "scripts": {
+        "lint": "yarn workspaces foreach -pt --all run lint"
+    },
     "workspaces": [
         "packages/*"
     ],
-    "packageManager": "yarn@4.4.0"
+    "packageManager": "yarn@4.4.0",
+    "devDependencies": {
+        "@biomejs/biome": "^1.9.4"
+    }
 }

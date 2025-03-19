@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Copyright (c) 2018-2023 Coinbase, Inc. <https://www.coinbase.com/>
 
 import { standardErrors } from '../error';
@@ -19,7 +18,7 @@ export function uint8ArrayToHex(value: Uint8Array) {
 }
 
 export function hexStringToUint8Array(hexString: string): Uint8Array {
-  return new Uint8Array(hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+  return new Uint8Array(hexString.match(/.{1,2}/g)!.map((byte) => Number.parseInt(byte, 16)));
 }
 
 export function hexStringFromBuffer(buf: Buffer, includePrefix = false): HexString {
@@ -163,8 +162,8 @@ export function isBigNumber(val: unknown): boolean {
   if (val == null || typeof (val as any).constructor !== 'function') {
     return false;
   }
-  const { constructor } = val as any;
-  return typeof constructor.config === 'function' && typeof constructor.EUCLID === 'number';
+  const { constructor: constructor_ } = val as any;
+  return typeof constructor_.config === 'function' && typeof constructor_.EUCLID === 'number';
 }
 
 export function range(start: number, stop: number): number[] {

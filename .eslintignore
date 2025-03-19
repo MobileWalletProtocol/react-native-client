@@ -1,6 +1,0 @@
-# specific files to ignore
-*.md
-
-# folders to ignore
-**/dist
-**/node_modules
